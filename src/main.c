@@ -39,6 +39,7 @@ int main(int argc, char* argv[]) {
 	for(int i = 0; i < 100; ++i) {
 		array_push(array, alloc_double(dist_uniform_double(rng, -100, 100, NULL)), NULL);
 	}
+	rng_delete(rng, NULL);
 	array_sort(array, compare, NULL);
 	size_t size = array_size(array, NULL);
 	printf("\nMax capacity: %ld\n", array_capacity(array, NULL));
