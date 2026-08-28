@@ -1,59 +1,39 @@
-# Prerequisites
-*.d
+# CMake preset build directories (build/debug, build/release,
+# build/coverage) and any plain `cmake -S . -B build` output -- all
+# regenerated from CMakeLists.txt + CMakePresets.json, never hand-edited.
+build/
 
-# Builds
-build
-main
+# compile.sh's own output: .obj/*.o intermediates and the final `main`
+# binary it links. (If `main` is already tracked from before this
+# .gitignore existed, adding it here won't untrack it on its own --
+# see the note below.)
+.obj/
+/main
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+# Generic gcov/lcov artifacts, in case anything is ever run outside
+# the coverage/ build directory (normally these land under build/,
+# already covered above).
+*.gcda
+*.gcno
+*.gcov
+*.info
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# CMake's own scratch/cache files, if CMake is ever run directly in
+# the repo root instead of a build/ subdirectory.
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
 
-# Precompiled Headers
-*.gch
-*.pch
+# CMakeUserPresets.json is for an individual's own local, machine-
+# specific presets (e.g. a custom binaryDir or extra debug flags) --
+# CMakePresets.json is the one meant to be shared and committed.
+CMakeUserPresets.json
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
-
-# debug information files
-*.dwo
+# Editor / OS noise
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db

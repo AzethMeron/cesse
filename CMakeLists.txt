@@ -2,35 +2,17 @@ cmake_minimum_required(VERSION 3.21)
 project(cesse C)
 
 # ---------------------------------------------------------------------------
-# CESSE_ENABLE_SANITIZERS controls the one meaningful difference between the
-# debug and release presets below. ON (the default, matching compile.sh
-# exactly) is what every test in tests/ has actually been run and verified
-# under. OFF trades that instrumentation for real optimization -- useful for
-# benchmarking or just faster iteration once you trust the code, but tests
-# haven't been validated against it, so treat failures under it as a signal
-# to go reproduce them with sanitizers on, not as gospel on their own.
+# All compiler/linker configuration lives in CMakePresets.json, not here.
+# This file only consumes CESSE_COMPILE_OPTIONS / CESSE_LINK_OPTIONS as
+# plain cache strings and applies them -- it has no opinion about what a
+# "debug" or "release" build should look like. See CMakePresets.json for
+# the actual flag sets, and tests/README.md for how to add another preset.
 # ---------------------------------------------------------------------------
-option(CESSE_ENABLE_SANITIZERS "Build with -fsanitize=address,undefined (matches compile.sh)" ON)
+set(CESSE_COMPILE_OPTIONS "" CACHE STRING "Space-separated compiler flags for the cesse library and every test")
+set(CESSE_LINK_OPTIONS "" CACHE STRING "Space-separated linker flags for the cesse library and every test")
 
-set(CESSE_COMPILE_OPTIONS
-    -std=c2x
-    -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion
-    -Wcast-qual -Wcast-align -Wstrict-prototypes -Wundef
-    -Wmissing-prototypes -Wold-style-definition -Wwrite-strings
-    -Wformat=2 -Wdouble-promotion -Wvla -Wpointer-arith -Wnull-dereference
-    -fno-common
-)
-set(CESSE_LINK_OPTIONS "")
-
-if(CESSE_ENABLE_SANITIZERS)
-    list(APPEND CESSE_COMPILE_OPTIONS
-        -O0 -g3 -fno-omit-frame-pointer
-        -fsanitize=address,undefined -fno-sanitize-recover=all
-    )
-    list(APPEND CESSE_LINK_OPTIONS -fsanitize=address,undefined)
-else()
-    list(APPEND CESSE_COMPILE_OPTIONS -O2 -g)
-endif()
+separate_arguments(CESSE_COMPILE_OPTIONS_LIST UNIX_COMMAND "${CESSE_COMPILE_OPTIONS}")
+separate_arguments(CESSE_LINK_OPTIONS_LIST UNIX_COMMAND "${CESSE_LINK_OPTIONS}")
 
 # ---------------------------------------------------------------------------
 # The library itself. main.c is excluded on purpose: it defines its own
@@ -43,8 +25,8 @@ list(REMOVE_ITEM CESSE_LIB_SOURCES "${CMAKE_SOURCE_DIR}/src/main.c")
 
 add_library(cesse STATIC ${CESSE_LIB_SOURCES})
 target_include_directories(cesse PUBLIC "${CMAKE_SOURCE_DIR}/headers")
-target_compile_options(cesse PUBLIC ${CESSE_COMPILE_OPTIONS})
-target_link_options(cesse PUBLIC ${CESSE_LINK_OPTIONS})
+target_compile_options(cesse PUBLIC ${CESSE_COMPILE_OPTIONS_LIST})
+target_link_options(cesse PUBLIC ${CESSE_LINK_OPTIONS_LIST})
 target_link_libraries(cesse PUBLIC m)
 
 enable_testing()

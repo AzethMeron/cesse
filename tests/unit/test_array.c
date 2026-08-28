@@ -175,6 +175,41 @@ static void test_max_capacity_is_positive(void) {
         ASSERT_TRUE(array_max_capacity() > 0);
 }
 
+static bool int_lt(void* a, void* b) { return *(int*)a < *(int*)b; }
+
+static void test_sort_wrapper(void) {
+        error_code_t err = CESSE_OK;
+        Array* a = array_new(4, &err);
+        int vals[5] = {3, 1, 4, 1, 5};
+        for (int i = 0; i < 5; i++) { array_push(a, &vals[i], &err); }
+        array_sort(a, int_lt, &err);
+        ASSERT_EQ(err, CESSE_OK);
+        for (size_t i = 1; i < 5; i++) {
+                ASSERT_TRUE(*(int*)array_get(a, i-1, NULL) >= *(int*)array_get(a, i, NULL));
+        }
+        array_delete(&a, &err, NULL, false);
+}
+
+static error_code_t failing_freer(void** obj) {
+        (void)obj;
+        return CESSE_ERR_ALLOC; /* simulates a custom freer reporting its own failure */
+}
+
+static void test_delete_reports_freer_failure(void) {
+        /* Doesn't assert on stderr output (out of scope for this
+         * framework) -- exists to exercise the "freer reported an
+         * error" branch under ASan, catching any use-after-free or
+         * leak that path might otherwise hide. */
+        error_code_t err = CESSE_OK;
+        Array* a = array_new(4, &err);
+        int* heap_val = malloc(sizeof(int));
+        *heap_val = 1;
+        array_push(a, heap_val, &err);
+        array_delete(&a, &err, failing_freer, false);
+        ASSERT_EQ(err, CESSE_OK); /* the freer's own failure doesn't fail delete() itself */
+        free(heap_val); /* failing_freer deliberately didn't free it */
+}
+
 int main(void) {
         TEST_INIT();
         RUN(test_new_delete);
@@ -190,5 +225,7 @@ int main(void) {
         RUN(test_delete_calls_custom_freer);
         RUN(test_delete_free_as_fallback);
         RUN(test_max_capacity_is_positive);
+        RUN(test_sort_wrapper);
+        RUN(test_delete_reports_freer_failure);
         return TEST_REPORT();
 }

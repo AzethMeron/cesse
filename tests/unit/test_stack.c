@@ -109,6 +109,22 @@ static void test_delete_free_as_fallback(void) {
         ASSERT_EQ(err, CESSE_OK);
 }
 
+static error_code_t failing_freer(void** obj) {
+        (void)obj;
+        return CESSE_ERR_ALLOC; /* simulates a custom freer reporting its own failure */
+}
+
+static void test_delete_reports_freer_failure(void) {
+        error_code_t err = CESSE_OK;
+        Stack* s = stack_new(&err);
+        int* heap_val = malloc(sizeof(int));
+        *heap_val = 1;
+        stack_push(s, heap_val, &err);
+        stack_delete(&s, &err, failing_freer, false);
+        ASSERT_EQ(err, CESSE_OK); /* the freer's own failure doesn't fail delete() itself */
+        free(heap_val); /* failing_freer deliberately didn't free it */
+}
+
 static void test_max_capacity_is_positive(void) {
         ASSERT_TRUE(stack_max_capacity() > 0);
 }
@@ -122,6 +138,7 @@ int main(void) {
         RUN(test_clear);
         RUN(test_delete_calls_custom_freer);
         RUN(test_delete_free_as_fallback);
+        RUN(test_delete_reports_freer_failure);
         RUN(test_max_capacity_is_positive);
         return TEST_REPORT();
 }

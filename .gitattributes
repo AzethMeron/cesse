@@ -1,0 +1,22 @@
+# Normalize everything Git considers text to LF, both in the working
+# tree and in what's stored in the repo -- regardless of what OS,
+# editor, or local git config a contributor has.
+* text=auto eol=lf
+
+# Anything that MUST be LF to actually run on Linux/macOS, spelled out
+# explicitly so there's no ambiguity even if the "text=auto" detection
+# above ever misjudges a file:
+*.sh text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+CMakeLists.txt text eol=lf
+*.cmake text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+
+# Mark genuinely binary files so Git never attempts to touch them --
+# harmless if none of these exist yet, but cheap insurance.
+*.png binary
+*.jpg binary
+*.gz binary
+*.zip binary

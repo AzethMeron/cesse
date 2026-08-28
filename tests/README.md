@@ -4,41 +4,66 @@ CMake + CTest. Nothing in `headers/` or `src/` is touched by any of this.
 
 ## Running
 
-With presets (recommended):
+Via `tools/` (recommended -- matches this repo's own convention for
+routine multi-step commands):
 
 ```sh
-cmake --preset debug                    # sanitizers on -- matches compile.sh, what the
-cmake --build --preset debug -j         # tests have actually been validated under
-ctest --preset debug
-
-cmake --preset release                  # optimized, sanitizers off -- for benchmarking
-cmake --build --preset release -j       # or fast iteration once you trust the code
-ctest --preset release
+tools/build_debug.sh        # sanitizers on -- matches compile.sh, what the
+                             # tests have actually been validated under
+tools/build_release.sh      # optimized, sanitizers off -- for benchmarking
+tools/build_coverage.sh     # gcov instrumentation, then a coverage report at
+                             # build/coverage/coverage_html/index.html
 ```
 
-`cmake --list-presets` shows both. Each preset gets its own build directory
-(`build/debug`, `build/release`) so switching between them never requires a
-clean rebuild.
-
-Without presets, plain CMake still works -- `CESSE_ENABLE_SANITIZERS`
-defaults to `ON`, matching the debug preset:
+Equivalently, by hand:
 
 ```sh
-cmake -S . -B build
+cmake --preset debug && cmake --build --preset debug -j && ctest --preset debug
+cmake --preset release && cmake --build --preset release -j && ctest --preset release
+cmake --preset coverage && cmake --build build/coverage --target coverage
+```
+
+`cmake --list-presets` lists all three. Each gets its own build directory
+(`build/debug`, `build/release`, `build/coverage`) so switching between them
+never requires a clean rebuild.
+
+Every flag any of these builds with -- warnings, sanitizers, optimization
+level, `--coverage` -- is set directly in `CMakePresets.json`, per preset.
+`CMakeLists.txt` doesn't decide any of that; it just reads whatever
+`CESSE_COMPILE_OPTIONS` / `CESSE_LINK_OPTIONS` the active preset set and
+applies them. To add a fourth preset (say, a stricter `-Werror` variant),
+add an entry to `CMakePresets.json` with its own complete flag string --
+nothing in `CMakeLists.txt` needs to change. Presets don't merge or append
+flag strings from an inherited preset, so each one's `CESSE_COMPILE_OPTIONS`
+needs to be fully self-contained, warnings and all, not just its own delta.
+
+Without presets, plain CMake still works, but `CESSE_COMPILE_OPTIONS` and
+`CESSE_LINK_OPTIONS` default to empty -- without setting them yourself
+you'd get an unoptimized, un-instrumented, warning-free build (not even
+`-std=c2x`), which is rarely what you want:
+
+```sh
+cmake -S . -B build -DCESSE_COMPILE_OPTIONS="-std=c2x -O0 -g3 -fsanitize=address,undefined ..." \
+                     -DCESSE_LINK_OPTIONS="-fsanitize=address,undefined"
 cmake --build build -j
 ctest --test-dir build
 ```
 
+Presets exist precisely so you don't have to type that -- use them.
+
 Filtering which tests run, with or without presets:
+
+```sh
 ctest --test-dir build -L unit          # just one category
 ctest --test-dir build -R test_array    # just tests matching a name
 ctest --test-dir build --output-on-failure
 ```
 
-Every test binary links against `libcesse.a`, built with the exact same
-flags as `compile.sh` (including `-fsanitize=address,undefined`). A test
-that triggers a memory bug or UB fails automatically via its exit code --
-you don't need to add your own checks for that on top of your assertions.
+Every test binary links against `libcesse.a`, built with whatever the
+active preset's `CESSE_COMPILE_OPTIONS` says (the `debug` preset matches
+`compile.sh` exactly, sanitizers included). A test that triggers a memory
+bug or UB fails automatically via its exit code -- you don't need to add
+your own checks for that on top of your assertions.
 
 ## Layout
 

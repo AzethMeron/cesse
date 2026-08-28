@@ -15,6 +15,16 @@ static void test_new_delete(void) {
         ASSERT_NULL(r);
 }
 
+static void test_new_time_produces_usable_generator(void) {
+        error_code_t err = CESSE_OK;
+        Rng* r = rng_new_time(&err);
+        ASSERT_EQ(err, CESSE_OK);
+        ASSERT_NOT_NULL(r);
+        double d = rng_next_double(r, &err);
+        ASSERT_TRUE(d >= 0.0 && d < 1.0);
+        rng_delete(&r, &err);
+}
+
 static void test_determinism_same_seed(void) {
         error_code_t err = CESSE_OK;
         Rng* a = rng_new(42, &err);
@@ -161,6 +171,7 @@ static void test_shuffle_is_a_permutation(void) {
 int main(void) {
         TEST_INIT();
         RUN(test_new_delete);
+        RUN(test_new_time_produces_usable_generator);
         RUN(test_determinism_same_seed);
         RUN(test_different_seeds_diverge);
         RUN(test_next_double_in_range);

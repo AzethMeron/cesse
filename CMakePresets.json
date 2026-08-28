@@ -13,7 +13,8 @@
             "displayName": "Debug (sanitizers on -- matches compile.sh exactly)",
             "description": "What every test in tests/ has actually been built and run under.",
             "cacheVariables": {
-                "CESSE_ENABLE_SANITIZERS": "ON"
+                "CESSE_COMPILE_OPTIONS": "-std=c2x -O0 -g3 -fno-omit-frame-pointer -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wcast-qual -Wcast-align -Wstrict-prototypes -Wundef -Wmissing-prototypes -Wold-style-definition -Wwrite-strings -Wformat=2 -Wdouble-promotion -Wvla -Wpointer-arith -Wnull-dereference -fno-common -fsanitize=address,undefined -fno-sanitize-recover=all",
+                "CESSE_LINK_OPTIONS": "-fsanitize=address,undefined"
             }
         },
         {
@@ -22,13 +23,26 @@
             "displayName": "Release (optimized, sanitizers off)",
             "description": "For benchmarking or fast iteration once you trust the code. Not what tests/ has been validated against -- reproduce any failure under the debug preset before trusting it.",
             "cacheVariables": {
-                "CESSE_ENABLE_SANITIZERS": "OFF"
+                "CESSE_COMPILE_OPTIONS": "-std=c2x -O2 -g -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wcast-qual -Wcast-align -Wstrict-prototypes -Wundef -Wmissing-prototypes -Wold-style-definition -Wwrite-strings -Wformat=2 -Wdouble-promotion -Wvla -Wpointer-arith -Wnull-dereference -fno-common",
+                "CESSE_LINK_OPTIONS": ""
+            }
+        },
+        {
+            "name": "coverage",
+            "inherits": "base",
+            "displayName": "Coverage (gcov instrumentation, sanitizers off)",
+            "description": "Build 'cmake --build build/coverage --target coverage' to run every test and produce build/coverage/coverage_html/index.html.",
+            "cacheVariables": {
+                "CESSE_COMPILE_OPTIONS": "-std=c2x -O0 -g -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wsign-conversion -Wcast-qual -Wcast-align -Wstrict-prototypes -Wundef -Wmissing-prototypes -Wold-style-definition -Wwrite-strings -Wformat=2 -Wdouble-promotion -Wvla -Wpointer-arith -Wnull-dereference -fno-common --coverage",
+                "CESSE_LINK_OPTIONS": "--coverage"
             }
         }
     ],
     "buildPresets": [
         { "name": "debug", "configurePreset": "debug" },
-        { "name": "release", "configurePreset": "release" }
+        { "name": "release", "configurePreset": "release" },
+        { "name": "coverage", "configurePreset": "coverage" },
+        { "name": "coverage-report", "configurePreset": "coverage", "targets": "coverage" }
     ],
     "testPresets": [
         {
