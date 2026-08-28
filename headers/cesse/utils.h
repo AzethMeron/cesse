@@ -19,6 +19,7 @@ typedef enum cesse_error : ErrorCode {
 	CESSE_ERR_BAD_ARG,
 	CESSE_ERR_OVERFLOW,
 	CESSE_ERR_UNDERFLOW,
+	CESSE_ERR_KEY_NOT_FOUND,
 } cesse_error_t;
 
 const char* ErrorCodeo_cstring(const ErrorCode* error_code);

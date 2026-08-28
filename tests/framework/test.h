@@ -10,7 +10,7 @@
  *     #include "cesse/array.h"
  *
  *     static void test_push_then_pop(void) {
- *             error_code_t err = CESSE_OK;
+ *             ErrorCode err = CESSE_OK;
  *             Array* a = array_new(4, &err);
  *             ASSERT_EQ(err, CESSE_OK);
  *             ...

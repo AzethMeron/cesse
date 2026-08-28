@@ -36,5 +36,8 @@ const char* ErrorCodeo_cstring(const ErrorCode* error) {
 		case CESSE_ERR_UNDERFLOW: {
 			return "Data (probably size_t) underflow detected & prevented.";
 		} break;
+		case CESSE_ERR_KEY_NOT_FOUND: {
+			return "Key not in the hashcontainer.";
+		} break;
 	}
 }

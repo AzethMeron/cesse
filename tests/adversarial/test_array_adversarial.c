@@ -3,14 +3,14 @@
 #include "cesse/utils.h"
 
 static void test_new_zero_capacity(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Array* a = array_new(0, &err);
         ASSERT_NULL(a);
         ASSERT_EQ(err, CESSE_ERR_BAD_ARG);
 }
 
 static void test_new_capacity_overflow(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         /* Must reject before ever attempting the allocation -- if this
          * hangs or OOMs instead of returning quickly, that's the bug. */
         Array* a = array_new(array_max_capacity() + 1, &err);
@@ -19,14 +19,14 @@ static void test_new_capacity_overflow(void) {
 }
 
 static void test_get_null_array(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         void* v = array_get(NULL, 0, &err);
         ASSERT_NULL(v);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
 }
 
 static void test_get_out_of_bounds(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Array* a = array_new(4, &err);
         int v = 1;
         array_push(a, &v, &err);
@@ -42,7 +42,7 @@ static void test_get_out_of_bounds(void) {
 }
 
 static void test_set_null_object(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Array* a = array_new(4, &err);
         int v = 1;
         array_push(a, &v, &err);
@@ -54,7 +54,7 @@ static void test_set_null_object(void) {
 }
 
 static void test_push_null_object(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Array* a = array_new(4, &err);
         err = CESSE_OK;
         array_push(a, NULL, &err);
@@ -64,7 +64,7 @@ static void test_push_null_object(void) {
 }
 
 static void test_pop_empty(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Array* a = array_new(4, &err);
         err = CESSE_OK;
         void* v = array_pop(a, &err);
@@ -74,7 +74,7 @@ static void test_pop_empty(void) {
 }
 
 static void test_remove_out_of_bounds(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Array* a = array_new(4, &err);
         err = CESSE_OK;
         void* v = array_remove(a, 0, &err); /* empty array */
@@ -84,7 +84,7 @@ static void test_remove_out_of_bounds(void) {
 }
 
 static void test_swap_out_of_bounds(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Array* a = array_new(4, &err);
         int v = 1;
         array_push(a, &v, &err);
@@ -98,7 +98,7 @@ static void test_swap_out_of_bounds(void) {
 }
 
 static void test_all_functions_reject_null_array(void) {
-        error_code_t err;
+        ErrorCode err;
 
         err = CESSE_OK; array_delete(NULL, &err, NULL, false);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
@@ -135,7 +135,7 @@ static void test_all_functions_reject_null_array(void) {
 }
 
 static void test_delete_of_already_nulled_pointer(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Array* a = array_new(4, &err);
         array_delete(&a, &err, NULL, false);
         ASSERT_NULL(a);
@@ -169,7 +169,7 @@ static void test_error_ptr_may_be_null_everywhere(void) {
 static void test_pop_shrink_then_regrow_preserves_data(void) {
         /* Exercises the capacity-growth/shrink boundary repeatedly --
          * a stress-ish adversarial case for internal_expand/shrink. */
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Array* a = array_new(4, &err);
         int vals[200];
         for (int round = 0; round < 5; round++) {

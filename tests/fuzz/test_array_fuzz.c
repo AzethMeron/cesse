@@ -11,7 +11,7 @@
  * makes this fully reproducible -- a failure here is a deterministic
  * repro, not a one-off flake. */
 static void test_array_fuzz_against_shadow(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* rng = rng_new(20240827ULL, &err);
         Array* a = array_new(4, &err);
 
@@ -35,7 +35,7 @@ static void test_array_fuzz_against_shadow(void) {
                         pool_next++;
                         shadow[shadow_size++] = v;
                 } else if (op == 1) {
-                        error_code_t pop_err = CESSE_OK;
+                        ErrorCode pop_err = CESSE_OK;
                         void* popped = array_pop(a, &pop_err);
                         if (shadow_size == 0) {
                                 ASSERT_EQ(pop_err, CESSE_ERR_EMPTY);

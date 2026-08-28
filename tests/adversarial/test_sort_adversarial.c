@@ -18,13 +18,13 @@ static bool double_lt_nan_safe(void* a, void* b) {
 }
 
 static void test_null_begin(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         sort(NULL, 5, int_lt, &err);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
 }
 
 static void test_null_comparator(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         int v = 1; void* p[1] = { &v };
         sort(p, 1, NULL, &err);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
@@ -35,7 +35,7 @@ static void test_nan_sorts_to_front_and_does_not_crash(void) {
         size_t n = sizeof vals / sizeof vals[0];
         void* ptrs[7];
         for (size_t i = 0; i < n; i++) { ptrs[i] = &vals[i]; }
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         sort(ptrs, n, double_lt_nan_safe, &err);
         ASSERT_EQ(err, CESSE_OK);
         ASSERT_TRUE(isnan(*(double*)ptrs[0])); /* NaN treated as max -> front */
@@ -53,7 +53,7 @@ static void test_already_descending_large_n_stays_fast_and_correct(void) {
         int* vals = malloc(n * sizeof(int));
         void** ptrs = malloc(n * sizeof(void*));
         for (size_t i = 0; i < n; i++) { vals[i] = (int)(n - i); ptrs[i] = &vals[i]; }
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         sort(ptrs, n, int_lt, &err);
         ASSERT_EQ(err, CESSE_OK);
         bool ok = true;
@@ -68,7 +68,7 @@ static void test_all_equal_large_n(void) {
         int* vals = malloc(n * sizeof(int));
         void** ptrs = malloc(n * sizeof(void*));
         for (size_t i = 0; i < n; i++) { vals[i] = 42; ptrs[i] = &vals[i]; }
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         sort(ptrs, n, int_lt, &err);
         ASSERT_EQ(err, CESSE_OK);
         for (size_t i = 0; i < n; i++) { ASSERT_EQ(*(int*)ptrs[i], 42); }
@@ -83,7 +83,7 @@ static void test_already_ascending_large_n(void) {
         int* vals = malloc(n * sizeof(int));
         void** ptrs = malloc(n * sizeof(void*));
         for (size_t i = 0; i < n; i++) { vals[i] = (int)i; ptrs[i] = &vals[i]; }
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         sort(ptrs, n, int_lt, &err);
         ASSERT_EQ(err, CESSE_OK);
         bool ok = true;
@@ -101,7 +101,7 @@ static void test_two_distinct_values_only(void) {
         int* vals = malloc(n * sizeof(int));
         void** ptrs = malloc(n * sizeof(void*));
         for (size_t i = 0; i < n; i++) { vals[i] = (int)(i % 2); ptrs[i] = &vals[i]; }
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         sort(ptrs, n, int_lt, &err);
         ASSERT_EQ(err, CESSE_OK);
         size_t i = 0;

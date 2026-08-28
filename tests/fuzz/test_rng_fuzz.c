@@ -11,7 +11,7 @@
  * out-of-range result. A separate Rng drives the min/max generation
  * so it isn't correlated with the values being tested. */
 static void test_uniform_i64_fuzz_bounds(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* rng = rng_new(77711ULL, &err);
         Rng* param_rng = rng_new(77822ULL, &err);
 
@@ -37,7 +37,7 @@ static void test_uniform_i64_fuzz_bounds(void) {
  * bounds across many draws -- a bias or off-by-one would likely
  * surface as an out-of-range value somewhere in a large sample. */
 static void test_uniform_i64_fuzz_small_ranges(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* rng = rng_new(4004ULL, &err);
         Rng* param_rng = rng_new(4005ULL, &err);
 
@@ -62,7 +62,7 @@ static void test_uniform_i64_fuzz_small_ranges(void) {
  * genuine permutation of its input (every original value present
  * exactly once) -- not just "didn't crash". */
 static void test_shuffle_fuzz_always_valid_permutation(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* rng = rng_new(32133ULL, &err);
         Rng* size_rng = rng_new(32144ULL, &err);
 

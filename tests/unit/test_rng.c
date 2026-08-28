@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 static void test_new_delete(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(1234, &err);
         ASSERT_EQ(err, CESSE_OK);
         ASSERT_NOT_NULL(r);
@@ -16,7 +16,7 @@ static void test_new_delete(void) {
 }
 
 static void test_new_time_produces_usable_generator(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new_time(&err);
         ASSERT_EQ(err, CESSE_OK);
         ASSERT_NOT_NULL(r);
@@ -26,7 +26,7 @@ static void test_new_time_produces_usable_generator(void) {
 }
 
 static void test_determinism_same_seed(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* a = rng_new(42, &err);
         Rng* b = rng_new(42, &err);
         for (int i = 0; i < 1000; i++) {
@@ -37,7 +37,7 @@ static void test_determinism_same_seed(void) {
 }
 
 static void test_different_seeds_diverge(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* a = rng_new(1, &err);
         Rng* b = rng_new(2, &err);
         int differences = 0;
@@ -50,7 +50,7 @@ static void test_different_seeds_diverge(void) {
 }
 
 static void test_next_double_in_range(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(7, &err);
         for (int i = 0; i < 100000; i++) {
                 double d = rng_next_double(r, &err);
@@ -60,7 +60,7 @@ static void test_next_double_in_range(void) {
 }
 
 static void test_uniform_i64_within_bounds_and_bias(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(99, &err);
         long n = 600000;
         long counts[3] = {0, 0, 0}; /* range=3 does NOT evenly divide 2^64 */
@@ -77,7 +77,7 @@ static void test_uniform_i64_within_bounds_and_bias(void) {
 }
 
 static void test_uniform_i64_min_equals_max(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(3, &err);
         for (int i = 0; i < 20; i++) {
                 ASSERT_EQ(dist_uniform_i64(r, 42, 42, &err), (int64_t)42);
@@ -86,7 +86,7 @@ static void test_uniform_i64_min_equals_max(void) {
 }
 
 static void test_uniform_i64_full_range(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(5, &err);
         bool saw_negative = false, saw_positive = false;
         for (int i = 0; i < 2000; i++) {
@@ -100,7 +100,7 @@ static void test_uniform_i64_full_range(void) {
 }
 
 static void test_uniform_double_in_range(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(11, &err);
         for (int i = 0; i < 100000; i++) {
                 double d = dist_uniform_double(r, -5.0, 5.0, &err);
@@ -110,7 +110,7 @@ static void test_uniform_double_in_range(void) {
 }
 
 static void test_bernoulli_matches_probability(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(13, &err);
         long n = 500000, trues = 0;
         for (long i = 0; i < n; i++) { if (dist_bernoulli(r, 0.3, &err)) { trues++; } }
@@ -119,7 +119,7 @@ static void test_bernoulli_matches_probability(void) {
 }
 
 static void test_normal_mean_and_stddev(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(17, &err);
         long n = 500000;
         double sum = 0.0, sumsq = 0.0;
@@ -137,7 +137,7 @@ static void test_normal_mean_and_stddev(void) {
 }
 
 static void test_exponential_mean_and_positivity(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(23, &err);
         long n = 500000;
         double sum = 0.0;
@@ -151,7 +151,7 @@ static void test_exponential_mean_and_positivity(void) {
 }
 
 static void test_shuffle_is_a_permutation(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(29, &err);
         int vals[8] = {0, 1, 2, 3, 4, 5, 6, 7};
         void* ptrs[8];

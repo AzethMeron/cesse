@@ -10,7 +10,7 @@ static void test_basic_descending_order(void) {
         size_t n = sizeof vals / sizeof vals[0];
         void* ptrs[10];
         for (size_t i = 0; i < n; i++) { ptrs[i] = &vals[i]; }
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         sort(ptrs, n, int_lt, &err);
         ASSERT_EQ(err, CESSE_OK);
         for (size_t i = 0; i < n; i++) {
@@ -19,7 +19,7 @@ static void test_basic_descending_order(void) {
 }
 
 static void test_edge_sizes(void) {
-        int v0[1]; void* p0[1]; error_code_t err = CESSE_OK;
+        int v0[1]; void* p0[1]; ErrorCode err = CESSE_OK;
         sort(p0, 0, int_lt, &err); /* nothing to check, must not crash */
         ASSERT_EQ(err, CESSE_OK);
 
@@ -48,7 +48,7 @@ static void test_stability(void) {
                 items[i].pos = (int)i;
                 ptrs[i] = &items[i];
         }
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         sort(ptrs, n, item_lt, &err);
         ASSERT_EQ(err, CESSE_OK);
         for (size_t i = 1; i < n; i++) {
@@ -65,14 +65,14 @@ static void test_all_equal(void) {
         int vals[20];
         void* ptrs[20];
         for (int i = 0; i < 20; i++) { vals[i] = 7; ptrs[i] = &vals[i]; }
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         sort(ptrs, 20, int_lt, &err);
         ASSERT_EQ(err, CESSE_OK);
         for (int i = 0; i < 20; i++) { ASSERT_EQ(*(int*)ptrs[i], 7); }
 }
 
 static void test_null_args(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         int v = 1; void* p[1] = { &v };
         sort(NULL, 1, int_lt, &err);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);

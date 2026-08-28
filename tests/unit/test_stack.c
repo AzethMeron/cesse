@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 static void test_new_delete(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
         ASSERT_EQ(err, CESSE_OK);
         ASSERT_NOT_NULL(s);
@@ -15,7 +15,7 @@ static void test_new_delete(void) {
 }
 
 static void test_push_pop_lifo(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
         int vals[5] = {10, 20, 30, 40, 50};
         for (int i = 0; i < 5; i++) { stack_push(s, &vals[i], &err); }
@@ -31,7 +31,7 @@ static void test_push_pop_lifo(void) {
 }
 
 static void test_top_does_not_remove(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
         int a = 1, b = 2;
         stack_push(s, &a, &err);
@@ -46,7 +46,7 @@ static void test_top_does_not_remove(void) {
 }
 
 static void test_size_tracks_pushes_and_pops(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
         int v = 1;
         ASSERT_EQ(stack_size(s, NULL), (size_t)0);
@@ -62,7 +62,7 @@ static void test_size_tracks_pushes_and_pops(void) {
 }
 
 static void test_clear(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
         int vals[10];
         for (int i = 0; i < 10; i++) { vals[i] = i; stack_push(s, &vals[i], &err); }
@@ -77,7 +77,7 @@ static void test_clear(void) {
 }
 
 static int free_call_count = 0;
-static error_code_t counting_freer(void** obj) {
+static ErrorCode counting_freer(void** obj) {
         free_call_count++;
         free(*obj);
         *obj = NULL;
@@ -86,7 +86,7 @@ static error_code_t counting_freer(void** obj) {
 
 static void test_delete_calls_custom_freer(void) {
         free_call_count = 0;
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
         for (int i = 0; i < 4; i++) {
                 int* heap_val = malloc(sizeof(int));
@@ -98,7 +98,7 @@ static void test_delete_calls_custom_freer(void) {
 }
 
 static void test_delete_free_as_fallback(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
         for (int i = 0; i < 4; i++) {
                 int* heap_val = malloc(sizeof(int));
@@ -109,13 +109,13 @@ static void test_delete_free_as_fallback(void) {
         ASSERT_EQ(err, CESSE_OK);
 }
 
-static error_code_t failing_freer(void** obj) {
+static ErrorCode failing_freer(void** obj) {
         (void)obj;
         return CESSE_ERR_ALLOC; /* simulates a custom freer reporting its own failure */
 }
 
 static void test_delete_reports_freer_failure(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
         int* heap_val = malloc(sizeof(int));
         *heap_val = 1;

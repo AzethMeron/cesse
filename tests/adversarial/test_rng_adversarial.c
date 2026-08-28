@@ -5,7 +5,7 @@
 #include <stdint.h>
 
 static void test_all_functions_reject_null_rng(void) {
-        error_code_t err;
+        ErrorCode err;
 
         err = CESSE_OK; rng_delete(NULL, &err);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
@@ -41,7 +41,7 @@ static void test_all_functions_reject_null_rng(void) {
 }
 
 static void test_shuffle_rejects_null_anchor(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(1, &err);
         err = CESSE_OK;
         shuffle(NULL, 5, r, &err);
@@ -50,7 +50,7 @@ static void test_shuffle_rejects_null_anchor(void) {
 }
 
 static void test_delete_of_already_nulled_pointer(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(1, &err);
         rng_delete(&r, &err);
         ASSERT_NULL(r);
@@ -60,7 +60,7 @@ static void test_delete_of_already_nulled_pointer(void) {
 }
 
 static void test_uniform_i64_min_greater_than_max(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(1, &err);
         err = CESSE_OK;
         dist_uniform_i64(r, 10, 5, &err);
@@ -69,7 +69,7 @@ static void test_uniform_i64_min_greater_than_max(void) {
 }
 
 static void test_uniform_double_bad_range(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(1, &err);
 
         err = CESSE_OK; dist_uniform_double(r, 5.0, 5.0, &err); /* min==max: empty [min,max) */
@@ -89,7 +89,7 @@ static void test_uniform_double_bad_range(void) {
 }
 
 static void test_bernoulli_bad_probability(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(1, &err);
 
         err = CESSE_OK; dist_bernoulli(r, -0.1, &err);
@@ -111,7 +111,7 @@ static void test_bernoulli_bad_probability(void) {
 }
 
 static void test_normal_bad_stddev(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(1, &err);
 
         err = CESSE_OK; dist_normal(r, 0.0, -1.0, &err);
@@ -130,7 +130,7 @@ static void test_normal_bad_stddev(void) {
 }
 
 static void test_exponential_bad_lambda(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(1, &err);
 
         err = CESSE_OK; dist_exponential(r, 0.0, &err);
@@ -146,7 +146,7 @@ static void test_exponential_bad_lambda(void) {
 }
 
 static void test_shuffle_length_zero_and_one_are_noops(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* r = rng_new(1, &err);
         int v = 42;
         void* p[1] = { &v };

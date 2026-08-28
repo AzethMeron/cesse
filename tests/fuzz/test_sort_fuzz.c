@@ -22,7 +22,7 @@ static int qsort_int_cmp(const void* a, const void* b) {
  *      of each other. This catches "lost" or "duplicated" elements
  *      that a pure sortedness check alone wouldn't reveal. */
 static void test_sort_fuzz_random_trials(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* rng = rng_new(555222ULL, &err);
 
         long trials = 3000;
@@ -42,7 +42,7 @@ static void test_sort_fuzz_random_trials(void) {
                         keys_only[i] = k;
                 }
 
-                error_code_t sort_err = CESSE_OK;
+                ErrorCode sort_err = CESSE_OK;
                 sort(ptrs, n, item_lt, &sort_err);
                 ASSERT_EQ(sort_err, CESSE_OK);
 
@@ -73,7 +73,7 @@ static void test_sort_fuzz_random_trials(void) {
  * (large range relative to n), the complementary case to the
  * heavy-duplication sweep above. */
 static void test_sort_fuzz_mostly_distinct_keys(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* rng = rng_new(556223ULL, &err);
 
         long trials = 2000;
@@ -88,7 +88,7 @@ static void test_sort_fuzz_mostly_distinct_keys(void) {
                         ptrs[i] = &items[i];
                 }
 
-                error_code_t sort_err = CESSE_OK;
+                ErrorCode sort_err = CESSE_OK;
                 sort(ptrs, n, item_lt, &sort_err);
                 ASSERT_EQ(sort_err, CESSE_OK);
 

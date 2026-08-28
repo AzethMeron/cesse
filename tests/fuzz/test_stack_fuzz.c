@@ -8,7 +8,7 @@
  * Stack's narrower (LIFO-only) interface: push, pop, top. Fixed seed
  * -> fully reproducible failure if one ever occurs. */
 static void test_stack_fuzz_against_shadow(void) {
-        error_code_t err = CESSE_OK;
+        ErrorCode err = CESSE_OK;
         Rng* rng = rng_new(998877ULL, &err);
         Stack* s = stack_new(&err);
 
@@ -32,7 +32,7 @@ static void test_stack_fuzz_against_shadow(void) {
                         pool_next++;
                         shadow[shadow_size++] = v;
                 } else if (op == 1) {
-                        error_code_t pop_err = CESSE_OK;
+                        ErrorCode pop_err = CESSE_OK;
                         void* popped = stack_pop(s, &pop_err);
                         if (shadow_size == 0) {
                                 ASSERT_EQ(pop_err, CESSE_ERR_EMPTY);
@@ -43,7 +43,7 @@ static void test_stack_fuzz_against_shadow(void) {
                                 shadow_size--;
                         }
                 } else if (op == 2) {
-                        error_code_t top_err = CESSE_OK;
+                        ErrorCode top_err = CESSE_OK;
                         void* top = stack_top(s, &top_err);
                         if (shadow_size == 0) {
                                 ASSERT_EQ(top_err, CESSE_ERR_EMPTY);
