@@ -9,7 +9,7 @@
 #include "cesse/array.h"
 #include "cesse/functions.h"
 #include "cesse/macros.h"
-#include "cesse/rng.h
+#include "cesse/rng.h"
 
 void* alloc_double(const double value);
 bool compare(void* left, void* right);
