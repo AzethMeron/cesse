@@ -6,6 +6,6 @@
 
 #include <stddef.h>
 
-void sort(void** begin, const size_t length, function_lt compare_lt, error_code_t* error);
+void sort(void** begin, const size_t length, function_compare_lt compare_lt, ErrorCode* error);
 
 #endif

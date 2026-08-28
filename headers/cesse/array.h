@@ -9,19 +9,19 @@
 
 typedef struct Array Array;
 
-Array* array_new(size_t capacity, error_code_t* error);
-void array_delete(Array** array, error_code_t* error, function_free freer, const bool free_as_fallback);
-void array_clear(Array* array, error_code_t* error, function_free freer, const bool free_as_fallback);
-void* array_get(Array* array, const size_t idx, error_code_t* error);
-void* array_set(Array* array, const size_t idx, void* object, error_code_t* error);
-void array_push(Array* array, void* object, error_code_t* error);
-void* array_pop(Array* array, error_code_t* error);
-size_t array_size(Array* array, error_code_t* error);
-size_t array_capacity(Array* array, error_code_t* error);
-void array_swap(Array* array, const size_t first, const size_t second, error_code_t* error);
-void* array_remove(Array* array, const size_t idx, error_code_t* error);
-void array_sort(Array* array, function_lt compare_lt, error_code_t* error);
-void array_fit_memory(Array* array, error_code_t* error);
+Array* array_new(size_t capacity, ErrorCode* error);
+void array_delete(Array** array, ErrorCode* error, function_delete freer);
+void array_clear(Array* array, ErrorCode* error, function_delete freer);
+void* array_get(Array* array, const size_t idx, ErrorCode* error);
+void* array_set(Array* array, const size_t idx, void* object, ErrorCode* error);
+void array_push(Array* array, void* object, ErrorCode* error);
+void* array_pop(Array* array, ErrorCode* error);
+size_t array_size(Array* array, ErrorCode* error);
+size_t array_capacity(Array* array, ErrorCode* error);
+void array_swap(Array* array, const size_t first, const size_t second, ErrorCode* error);
+void* array_remove(Array* array, const size_t idx, ErrorCode* error);
+void array_sort(Array* array, function_compare_lt compare_lt, ErrorCode* error);
+void array_fit_memory(Array* array, ErrorCode* error);
 size_t array_max_capacity();
 
 #endif

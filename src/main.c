@@ -11,7 +11,7 @@
 #include "cesse/macros.h"
 
 void* alloc_double(const double value);
-error_code_t freer(void** addr);
+ErrorCode freer(void** addr);
 bool compare(void* left, void* right);
 
 void* alloc_double(const double value) {
@@ -20,7 +20,7 @@ void* alloc_double(const double value) {
 	return ptr;
 }
 
-error_code_t freer(void** addr) {
+ErrorCode freer(void** addr) {
 	free(*addr);
 	*addr = NULL;
 	return CESSE_OK;
@@ -34,11 +34,11 @@ bool compare(void* left, void* right) {
 	return *l < *r;
 }
 
-#define PRINT_ERROR(error) { if(error) { printf("Error %d: %s", error, error_code_to_cstring(&error)); } }
+#define PRINT_ERROR(error) { if(error) { printf("Error %d: %s", error, ErrorCodeo_cstring(&error)); } }
 
 int main(int argc, char* argv[]) {
 	if(argc >= 1) { printf("Hello from %s\n", argv[0]); }
-	error_code_t error = CESSE_OK;
+	ErrorCode error = CESSE_OK;
 	Array* array = array_new(2, &error);
 	PRINT_ERROR(error);
 	array_push(array, alloc_double(-53.442), NULL);

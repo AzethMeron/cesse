@@ -5,12 +5,12 @@
 
 // Type and values for error codes
 // You should ALWAYS create vessel for error code like this:
-//   error_code_t error = CESSE_OK;
+//   ErrorCode error = CESSE_OK;
 // then pass address of that local variable to functions as necessary
-// Every error_code_t* argument can also be ignored by using NULL
+// Every ErrorCode* argument can also be ignored by using NULL
 // Error codes are set only on error (during normal execution, functions never set it to anything - thus initialization is important)
-typedef uint16_t error_code_t;
-typedef enum cesse_error : error_code_t {
+typedef uint16_t ErrorCode;
+typedef enum cesse_error : ErrorCode {
 	CESSE_OK = 0,
 	CESSE_ERR_ALLOC,
 	CESSE_ERR_NULLARG,
@@ -21,6 +21,6 @@ typedef enum cesse_error : error_code_t {
 	CESSE_ERR_UNDERFLOW,
 } cesse_error_t;
 
-const char* error_code_to_cstring(const error_code_t* error_code);
+const char* ErrorCodeo_cstring(const ErrorCode* error_code);
 
 #endif

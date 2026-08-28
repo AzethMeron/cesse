@@ -4,13 +4,13 @@
 
 #include <stddef.h>
 
-const char* error_code_to_cstring(const error_code_t* error) {
+const char* ErrorCodeo_cstring(const ErrorCode* error) {
 	if(error == NULL) {
-		return "error_code_to_cstring: NULL error_code pointer passed to decode. Not library bug, but user's incorrect usage.";
+		return "ErrorCodeo_cstring: NULL error_code pointer passed to decode. Not library bug, but user's incorrect usage.";
 	}
 	switch(CAST(*error, cesse_error_t)) {
 		default: {
-			return "error_code_to_cstring: error code not recognized";
+			return "ErrorCodeo_cstring: error code not recognized";
 		} break;
 		case CESSE_OK: {
 			return "No error occured, all is OK!";

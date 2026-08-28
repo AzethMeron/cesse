@@ -79,7 +79,7 @@ static uint64_t bounded_u64(Rng* rng, uint64_t range) {
 	return x % range;
 }
 
-Rng* rng_new(const uint64_t seed, error_code_t* error) {
+Rng* rng_new(const uint64_t seed, ErrorCode* error) {
 	void* ptr = malloc(sizeof(Rng));
 	ERROR_ON_COND(ptr==NULL, error, CESSE_ERR_ALLOC, return NULL);
 	Rng* rng = CAST(ptr, Rng*);
@@ -87,11 +87,11 @@ Rng* rng_new(const uint64_t seed, error_code_t* error) {
 	return rng;
 }
 
-Rng* rng_new_time(error_code_t* error) {
+Rng* rng_new_time(ErrorCode* error) {
 	return rng_new(CAST(time(NULL), uint64_t), error);
 }
 
-void rng_delete(Rng** rng, error_code_t* error) {
+void rng_delete(Rng** rng, ErrorCode* error) {
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return;);
 	ERROR_ON_COND((*rng)==NULL, error, CESSE_ERR_NULLARG, return;);
 	free(*rng);
@@ -99,21 +99,21 @@ void rng_delete(Rng** rng, error_code_t* error) {
 }
 
 // Raw outputs
-uint32_t rng_next_u32(Rng* rng, error_code_t* error) {
+uint32_t rng_next_u32(Rng* rng, ErrorCode* error) {
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	return (uint32_t)(next(rng) >> 32);
 }
-uint64_t rng_next_u64(Rng* rng, error_code_t* error) {
+uint64_t rng_next_u64(Rng* rng, ErrorCode* error) {
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	return next(rng);
 }
-double   rng_next_double(Rng* rng, error_code_t* error) { 
+double   rng_next_double(Rng* rng, ErrorCode* error) { 
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	return CAST((next(rng) >> 11), double) * 0x1.0p-53;
 
 }
 // distribution
-int64_t  dist_uniform_i64(Rng* rng, const int64_t min, const int64_t max, error_code_t* error) {
+int64_t  dist_uniform_i64(Rng* rng, const int64_t min, const int64_t max, ErrorCode* error) {
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	ERROR_ON_COND(min > max, error, CESSE_ERR_BAD_ARG, return 0;);
 	/* Number of representable values in [min, max]. Computed in
@@ -124,17 +124,17 @@ int64_t  dist_uniform_i64(Rng* rng, const int64_t min, const int64_t max, error_
 	uint64_t offset = bounded_u64(rng, range);
 	return CAST(CAST(min, uint64_t) + offset, int64_t);
 }
-double   dist_uniform_double(Rng* rng, const double min, const double max, error_code_t* error) {
+double   dist_uniform_double(Rng* rng, const double min, const double max, ErrorCode* error) {
 	ERROR_ON_COND(rng == NULL, error, CESSE_ERR_NULLARG, return 0.0;);
     ERROR_ON_COND(!(min < max), error, CESSE_ERR_BAD_ARG, return 0.0;);
 	return min + (max - min) * rng_next_double(rng, error);
 }	
-bool     dist_bernoulli(Rng* rng, const double p, error_code_t* error) {
+bool     dist_bernoulli(Rng* rng, const double p, ErrorCode* error) {
 	ERROR_ON_COND(rng == NULL, error, CESSE_ERR_NULLARG, return false;);
     ERROR_ON_COND(!(p >= 0.0 && p <= 1.0), error, CESSE_ERR_BAD_ARG, return false);
     return rng_next_double(rng, error) < p;
 }
-double   dist_normal(Rng* rng, const double mean, const double stddev, error_code_t* error) {
+double   dist_normal(Rng* rng, const double mean, const double stddev, ErrorCode* error) {
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0.0;);
 	ERROR_ON_COND(!(stddev >= 0.0), error, CESSE_ERR_BAD_ARG, return 0.0;);
 	/* Box-Muller. u1==0.0 would make log(u1) = -infinity; rng_next_double's
@@ -148,7 +148,7 @@ double   dist_normal(Rng* rng, const double mean, const double stddev, error_cod
 	double z0 = sqrt(-2.0 * log(u1)) * cos(TWO_PI * u2);
 	return mean + z0 * stddev;
 }
-double   dist_exponential(Rng* rng, const double lambda, error_code_t* error) {
+double   dist_exponential(Rng* rng, const double lambda, ErrorCode* error) {
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0.0;);
 	ERROR_ON_COND(!(lambda > 0.0), error, CESSE_ERR_BAD_ARG, return 0.0;);
 	/* Inverse-CDF sampling: same u==0.0 concern as dist_normal. */
@@ -158,7 +158,7 @@ double   dist_exponential(Rng* rng, const double lambda, error_code_t* error) {
 	} while (u == 0.0);
 	return -log(u) / lambda;
 }
-void shuffle(void** anchor, const size_t length, Rng* rng, error_code_t* error) {
+void shuffle(void** anchor, const size_t length, Rng* rng, ErrorCode* error) {
 	ERROR_ON_COND(anchor==NULL, error, CESSE_ERR_NULLARG, return;);
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return;);
 	if (length < 2) { return; }

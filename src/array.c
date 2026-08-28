@@ -21,7 +21,7 @@ typedef struct Array {
 #define MIN_CAPACITY (4) 
 #define MAX_CAPACITY (SIZE_MAX/sizeof(void*))
 
-static bool internal_expand_if_necessary(Array* array, size_t target_size, error_code_t* error) {
+static bool internal_expand_if_necessary(Array* array, size_t target_size, ErrorCode* error) {
     if(target_size > array->capacity) {
 		// manage size
 		ERROR_ON_COND(target_size > MAX_CAPACITY, error, CESSE_ERR_OVERFLOW, return true;);
@@ -46,7 +46,7 @@ static bool internal_expand_if_necessary(Array* array, size_t target_size, error
 	return false;
 }
 
-static bool internal_shrink_if_appropriate(Array* array, size_t target_size, error_code_t* error) {
+static bool internal_shrink_if_appropriate(Array* array, size_t target_size, ErrorCode* error) {
 	if(array->capacity > MIN_CAPACITY) { // reallocation really isn't worth the effort for small arrays 
 		if(target_size < array->capacity / 2) {
 			size_t new_capacity = array->capacity / 2;
@@ -63,7 +63,7 @@ static bool internal_shrink_if_appropriate(Array* array, size_t target_size, err
 	return false;
 }
 
-Array* array_new(size_t capacity, error_code_t* error) {
+Array* array_new(size_t capacity, ErrorCode* error) {
 	ERROR_ON_COND(capacity==0, error, CESSE_ERR_BAD_ARG, return NULL;); // This guarantees we're making array of cap ATLEAST 1
 	ERROR_ON_COND(capacity>MAX_CAPACITY, error, CESSE_ERR_OVERFLOW, return NULL);
 	Array* vessel = NULL;
@@ -90,43 +90,41 @@ Array* array_new(size_t capacity, error_code_t* error) {
 //       but freer gets void**, pivoted to the address of THE object.
 //       You get pointer to the pointer. No arrays involved.
 //       You shall free(*ptr) or equivalent, then *ptr = NULL;
-void array_delete(Array** array, error_code_t* error, function_free freer, const bool free_as_fallback) {
+void array_delete(Array** array, ErrorCode* error, function_delete freer) {
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return;);
-	ERROR_ON_COND((*array)==NULL, error, CESSE_ERR_NULLARG, return;);
-	array_clear(*array, error, freer, free_as_fallback);
+	if( (*array) == NULL ) { return; } //no-op
+	array_clear(*array, error, freer);
 	free((*array)->data);
 	free(*array);
 	*array = NULL;
 }
 
-void array_clear(Array* array, error_code_t* error, function_free freer, const bool free_as_fallback) {
+void array_clear(Array* array, ErrorCode* error, function_delete freer) {
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return;);
 	while(array->size) { 
-		error_code_t local_err = CESSE_OK;
+		ErrorCode local_err = CESSE_OK;
 		void* object = array_pop(array, &local_err);
 		if(local_err) { // Should be impossible
 			SET_ERROR(error, local_err);
-			fprintf(stderr, "array_clear: internal error during cleanup. Continuing either way, but memory leaks are likely.\nError code %d -> %s", local_err, error_code_to_cstring(&local_err)); 
+			fprintf(stderr, "array_clear: internal error during cleanup. Continuing either way, but memory leaks are likely.\nError code %d -> %s", local_err, ErrorCodeo_cstring(&local_err)); 
 			return; 
 		} 
 		if(freer) {
 			local_err = freer(&object);
 			if(local_err) {
-				fprintf(stderr, "Error occured in array_clear with using custom free-er.\nError code %d -> %s. Continuing either way.", local_err, error_code_to_cstring(&local_err));
+				fprintf(stderr, "Error occured in array_clear while freeing contents.\nError code %d -> %s. Continuing either way.", local_err, ErrorCodeo_cstring(&local_err));
 			}
-		} else if (free_as_fallback) {
-			free(object);
 		}
 	}
 }
 
-void* array_get(Array* array, const size_t idx, error_code_t* error) {
+void* array_get(Array* array, const size_t idx, ErrorCode* error) {
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return NULL);
 	ERROR_ON_COND(idx>=(array->size), error, CESSE_ERR_OUT_OF_BOUNDS, return NULL);
 	return array->data[idx];
 }
 
-void* array_set(Array* array, const size_t idx, void* object, error_code_t* error) { // overrides pointer at position, return previous pointer
+void* array_set(Array* array, const size_t idx, void* object, ErrorCode* error) { // overrides pointer at position, return previous pointer
         ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return NULL);
         ERROR_ON_COND(idx>=(array->size), error, CESSE_ERR_OUT_OF_BOUNDS, return NULL);
 	ERROR_ON_COND(object==NULL, error, CESSE_ERR_NULLARG, return NULL);
@@ -135,7 +133,7 @@ void* array_set(Array* array, const size_t idx, void* object, error_code_t* erro
 	return ptr;
 }
 
-void array_push(Array* array, void* object, error_code_t* error) { // object is borrowed
+void array_push(Array* array, void* object, ErrorCode* error) { // object is borrowed
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return);
 	ERROR_ON_COND(object==NULL, error, CESSE_ERR_NULLARG, return);
 	ERROR_ON_COND(array->size>=MAX_CAPACITY, error, CESSE_ERR_OVERFLOW, return);
@@ -144,7 +142,7 @@ void array_push(Array* array, void* object, error_code_t* error) { // object is 
         array->size = array->size + 1;
 }
 
-void* array_pop(Array* array, error_code_t* error) { // doesn't free memory! Also this is the default way of emptying array
+void* array_pop(Array* array, ErrorCode* error) { // doesn't free memory! Also this is the default way of emptying array
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return NULL);
 	ERROR_ON_COND(array->size == 0, error, CESSE_ERR_EMPTY, return NULL);
 	void* ptr = array->data[array->size - 1];
@@ -154,17 +152,17 @@ void* array_pop(Array* array, error_code_t* error) { // doesn't free memory! Als
 	return ptr;
 }
 
-size_t array_size(Array* array, error_code_t* error) {
+size_t array_size(Array* array, ErrorCode* error) {
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	return array->size;
 }
 
-size_t array_capacity(Array* array, error_code_t* error) {
+size_t array_capacity(Array* array, ErrorCode* error) {
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	return array->capacity;
 }
 
-void array_swap(Array* array, const size_t first, const size_t second, error_code_t* error) {
+void array_swap(Array* array, const size_t first, const size_t second, ErrorCode* error) {
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return;);
 	ERROR_ON_COND(first>=array->size, error, CESSE_ERR_OUT_OF_BOUNDS, return;);
 	ERROR_ON_COND(second>=array->size, error, CESSE_ERR_OUT_OF_BOUNDS, return;);
@@ -174,7 +172,7 @@ void array_swap(Array* array, const size_t first, const size_t second, error_cod
 	array->data[second] = ptr;
 }
 
-void* array_remove(Array* array, const size_t idx, error_code_t* error) {
+void* array_remove(Array* array, const size_t idx, ErrorCode* error) {
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return NULL;);
 	ERROR_ON_COND(idx>=array->size, error, CESSE_ERR_OUT_OF_BOUNDS, return NULL;);
 	if(idx == array->size-1) { return array_pop(array, error); }
@@ -188,12 +186,12 @@ void* array_remove(Array* array, const size_t idx, error_code_t* error) {
 	return ptr;
 }
 
-void array_sort(Array* array, function_lt compare_lt, error_code_t* error) {
+void array_sort(Array* array, function_compare_lt compare_lt, ErrorCode* error) {
     ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return;);
 	sort(array->data, array->size, compare_lt, error);
 }
 
-void array_fit_memory(Array* array, error_code_t* error) {
+void array_fit_memory(Array* array, ErrorCode* error) {
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return;);
 	if(array->size == array->capacity) { return; } // Nothing to do
 	if(array->capacity <= MIN_CAPACITY) { return; } // Nothing worth to do

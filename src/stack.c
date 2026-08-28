@@ -22,7 +22,7 @@ typedef struct Stack {
 	stack_elem* front;
 } Stack;
 
-Stack* stack_new(error_code_t* error) {
+Stack* stack_new(ErrorCode* error) {
 	void* ptr = malloc(sizeof(Stack));
 	ERROR_ON_COND(ptr==NULL, error, CESSE_ERR_ALLOC, return NULL;);
 	Stack* stack = CAST(ptr, Stack*);
@@ -31,36 +31,34 @@ Stack* stack_new(error_code_t* error) {
 	return stack;
 }
 
-void stack_delete(Stack** stack, error_code_t* error, function_free freer, const bool free_as_fallback) {
+void stack_delete(Stack** stack, ErrorCode* error, function_delete freer) {
 	ERROR_ON_COND(stack==NULL, error, CESSE_ERR_NULLARG, return;);
-	ERROR_ON_COND((*stack)==NULL, error, CESSE_ERR_NULLARG, return;);
-	stack_clear(*stack, error, freer, free_as_fallback);
+	if( (*stack) == NULL ) { return; } //no-op
+	stack_clear(*stack, error, freer);
 	free(*stack);
 	*stack = NULL;
 }
 
-void stack_clear(Stack* stack, error_code_t* error, function_free freer, const bool free_as_fallback) {
+void stack_clear(Stack* stack, ErrorCode* error, function_delete freer) {
 	ERROR_ON_COND(stack==NULL, error, CESSE_ERR_NULLARG, return;);
 	while(stack->front != NULL) { 
-		error_code_t local_err = CESSE_OK;
+		ErrorCode local_err = CESSE_OK;
 		void* object = stack_pop(stack, &local_err);
 		if(local_err) { // Should be impossible
 			SET_ERROR(error, local_err);
-			fprintf(stderr, "stack_clear: internal error during cleanup. Continuing either way, but memory leaks are likely.\nError code %d -> %s", local_err, error_code_to_cstring(&local_err)); 
+			fprintf(stderr, "stack_clear: internal error during cleanup. Continuing either way, but memory leaks are likely.\nError code %d -> %s", local_err, ErrorCodeo_cstring(&local_err)); 
 			return; 
 		} 
 		if(freer) {
 			local_err = freer(&object);
 			if(local_err) {
-				fprintf(stderr, "Error occured in stack_clear with using custom free-er.\nError code %d -> %s. Continuing either way.", local_err, error_code_to_cstring(&local_err));
+				fprintf(stderr, "Error occured in stack_clear while freeing contents.\nError code %d -> %s. Continuing either way.", local_err, ErrorCodeo_cstring(&local_err));
 			}
-		} else if (free_as_fallback) {
-			free(object);
 		}
 	}
 }
 
-void stack_push(Stack* stack, void* object, error_code_t* error) {
+void stack_push(Stack* stack, void* object, ErrorCode* error) {
 	ERROR_ON_COND(stack==NULL, error, CESSE_ERR_NULLARG, return;);
 	ERROR_ON_COND(object==NULL, error, CESSE_ERR_NULLARG, return;);
 	ERROR_ON_COND(stack->size == MAX_CAPACITY, error, CESSE_ERR_OVERFLOW, return;);
@@ -73,7 +71,7 @@ void stack_push(Stack* stack, void* object, error_code_t* error) {
 	stack->size = stack->size + 1;
 }
 
-void* stack_pop(Stack* stack, error_code_t* error) {
+void* stack_pop(Stack* stack, ErrorCode* error) {
 	ERROR_ON_COND(stack==NULL, error, CESSE_ERR_NULLARG, return NULL;);
 	ERROR_ON_COND(stack->front == NULL, error, CESSE_ERR_EMPTY, return NULL;);
 	stack_elem* to_remove = stack->front;
@@ -84,13 +82,13 @@ void* stack_pop(Stack* stack, error_code_t* error) {
 	return object;
 }
 
-void* stack_top(Stack* stack, error_code_t* error) {
+void* stack_top(Stack* stack, ErrorCode* error) {
 	ERROR_ON_COND(stack==NULL, error, CESSE_ERR_NULLARG, return NULL;);
 	ERROR_ON_COND(stack->front==NULL, error, CESSE_ERR_EMPTY, return NULL;);
 	return stack->front->object;
 }
 
-size_t stack_size(Stack* stack, error_code_t* error) {
+size_t stack_size(Stack* stack, ErrorCode* error) {
 	ERROR_ON_COND(stack==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	return stack->size;
 }

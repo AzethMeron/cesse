@@ -25,13 +25,13 @@
  * scratch buffer is allocated up front and reused for every merge.
  */
 
-static inline bool is_before(function_lt compare_lt, void* a, void* b) {
+static inline bool is_before(function_compare_lt compare_lt, void* a, void* b) {
         return compare_lt(b, a);
 }
 
 /* Merges the two already-sorted runs anchor[lo..mid] and
  * anchor[mid+1..hi] via scratch, then writes the result back. */
-static void merge(void** anchor, size_t lo, size_t mid, size_t hi, function_lt compare_lt, void** scratch) {
+static void merge(void** anchor, size_t lo, size_t mid, size_t hi, function_compare_lt compare_lt, void** scratch) {
         size_t i = lo, j = mid + 1, k = lo;
         while (i <= mid && j <= hi) {
                 if (is_before(compare_lt, anchor[j], anchor[i])) {
@@ -45,7 +45,7 @@ static void merge(void** anchor, size_t lo, size_t mid, size_t hi, function_lt c
         memcpy(anchor + lo, scratch + lo, (hi - lo + 1) * sizeof(void*));
 }
 
-static void merge_sort(void** anchor, size_t lo, size_t hi, function_lt compare_lt, void** scratch) {
+static void merge_sort(void** anchor, size_t lo, size_t hi, function_compare_lt compare_lt, void** scratch) {
         if (lo >= hi) { return; } /* 0 or 1 elements: already sorted */
         size_t mid = lo + (hi - lo) / 2;
         merge_sort(anchor, lo, mid, compare_lt, scratch);
@@ -53,7 +53,7 @@ static void merge_sort(void** anchor, size_t lo, size_t hi, function_lt compare_
         merge(anchor, lo, mid, hi, compare_lt, scratch);
 }
 
-void sort(void** begin, const size_t length, function_lt compare_lt, error_code_t* error) {
+void sort(void** begin, const size_t length, function_compare_lt compare_lt, ErrorCode* error) {
         ERROR_ON_COND(begin==NULL, error, CESSE_ERR_NULLARG, return;);
         ERROR_ON_COND(compare_lt==NULL, error, CESSE_ERR_NULLARG, return;);
         if (length < 2) { return; }
