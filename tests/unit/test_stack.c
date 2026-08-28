@@ -9,7 +9,7 @@ static void test_new_delete(void) {
         ASSERT_EQ(err, CESSE_OK);
         ASSERT_NOT_NULL(s);
         ASSERT_EQ(stack_size(s, NULL), (size_t)0);
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
         ASSERT_EQ(err, CESSE_OK);
         ASSERT_NULL(s);
 }
@@ -27,7 +27,7 @@ static void test_push_pop_lifo(void) {
                 ASSERT_EQ(*popped, vals[i]);
         }
         ASSERT_EQ(stack_size(s, NULL), (size_t)0);
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
 }
 
 static void test_top_does_not_remove(void) {
@@ -42,7 +42,7 @@ static void test_top_does_not_remove(void) {
         ASSERT_EQ(stack_size(s, NULL), (size_t)2); /* unchanged */
         int* top2 = stack_top(s, &err);
         ASSERT_EQ(*top2, 2); /* same value, still there */
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
 }
 
 static void test_size_tracks_pushes_and_pops(void) {
@@ -58,7 +58,7 @@ static void test_size_tracks_pushes_and_pops(void) {
         ASSERT_EQ(stack_size(s, NULL), (size_t)1);
         stack_pop(s, &err);
         ASSERT_EQ(stack_size(s, NULL), (size_t)0);
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
 }
 
 static void test_clear(void) {
@@ -66,14 +66,14 @@ static void test_clear(void) {
         Stack* s = stack_new(&err);
         int vals[10];
         for (int i = 0; i < 10; i++) { vals[i] = i; stack_push(s, &vals[i], &err); }
-        stack_clear(s, &err, NULL, false);
+        stack_clear(s, &err, NULL);
         ASSERT_EQ(err, CESSE_OK);
         ASSERT_EQ(stack_size(s, NULL), (size_t)0);
         /* pushing after a clear should behave like a fresh stack */
         int v = 99;
         stack_push(s, &v, &err);
         ASSERT_EQ(*(int*)stack_top(s, &err), 99);
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
 }
 
 static int free_call_count = 0;
@@ -93,11 +93,11 @@ static void test_delete_calls_custom_freer(void) {
                 *heap_val = i;
                 stack_push(s, heap_val, &err);
         }
-        stack_delete(&s, &err, counting_freer, false);
+        stack_delete(&s, &err, counting_freer);
         ASSERT_EQ(free_call_count, 4);
 }
 
-static void test_delete_free_as_fallback(void) {
+static void test_delete_with_default_delete_function(void) {
         ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
         for (int i = 0; i < 4; i++) {
@@ -105,7 +105,7 @@ static void test_delete_free_as_fallback(void) {
                 *heap_val = i;
                 stack_push(s, heap_val, &err);
         }
-        stack_delete(&s, &err, NULL, true); /* ASan catches leaks if this is wrong */
+        stack_delete(&s, &err, default_delete_function); /* ASan catches leaks if this is wrong */
         ASSERT_EQ(err, CESSE_OK);
 }
 
@@ -120,7 +120,7 @@ static void test_delete_reports_freer_failure(void) {
         int* heap_val = malloc(sizeof(int));
         *heap_val = 1;
         stack_push(s, heap_val, &err);
-        stack_delete(&s, &err, failing_freer, false);
+        stack_delete(&s, &err, failing_freer);
         ASSERT_EQ(err, CESSE_OK); /* the freer's own failure doesn't fail delete() itself */
         free(heap_val); /* failing_freer deliberately didn't free it */
 }
@@ -137,7 +137,7 @@ int main(void) {
         RUN(test_size_tracks_pushes_and_pops);
         RUN(test_clear);
         RUN(test_delete_calls_custom_freer);
-        RUN(test_delete_free_as_fallback);
+        RUN(test_delete_with_default_delete_function);
         RUN(test_delete_reports_freer_failure);
         RUN(test_max_capacity_is_positive);
         return TEST_REPORT();

@@ -6,6 +6,7 @@ static void test_all_known_codes_have_distinct_strings(void) {
         cesse_error_t codes[] = {
                 CESSE_OK, CESSE_ERR_ALLOC, CESSE_ERR_NULLARG, CESSE_ERR_OUT_OF_BOUNDS,
                 CESSE_ERR_EMPTY, CESSE_ERR_BAD_ARG, CESSE_ERR_OVERFLOW, CESSE_ERR_UNDERFLOW,
+                CESSE_ERR_KEY_NOT_FOUND,
         };
         size_t n = sizeof codes / sizeof codes[0];
         for (size_t i = 0; i < n; i++) {

@@ -11,7 +11,7 @@ static void test_top_on_empty_returns_error_not_crash(void) {
         void* v = stack_top(s, &err);
         ASSERT_NULL(v);
         ASSERT_EQ(err, CESSE_ERR_EMPTY);
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
 }
 
 static void test_pop_on_empty_returns_error_not_crash(void) {
@@ -21,7 +21,7 @@ static void test_pop_on_empty_returns_error_not_crash(void) {
         void* v = stack_pop(s, &err);
         ASSERT_NULL(v);
         ASSERT_EQ(err, CESSE_ERR_EMPTY);
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
 }
 
 static void test_top_and_pop_on_empty_after_draining(void) {
@@ -39,7 +39,7 @@ static void test_top_and_pop_on_empty_after_draining(void) {
         err = CESSE_OK;
         ASSERT_NULL(stack_pop(s, &err));
         ASSERT_EQ(err, CESSE_ERR_EMPTY);
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
 }
 
 static void test_push_null_object(void) {
@@ -49,17 +49,17 @@ static void test_push_null_object(void) {
         stack_push(s, NULL, &err);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
         ASSERT_EQ(stack_size(s, NULL), (size_t)0);
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
 }
 
 static void test_all_functions_reject_null_stack(void) {
         ErrorCode err;
         int dummy = 1;
 
-        err = CESSE_OK; stack_delete(NULL, &err, NULL, false);
+        err = CESSE_OK; stack_delete(NULL, &err, NULL);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
 
-        err = CESSE_OK; stack_clear(NULL, &err, NULL, false);
+        err = CESSE_OK; stack_clear(NULL, &err, NULL);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
 
         err = CESSE_OK; stack_push(NULL, &dummy, &err);
@@ -78,11 +78,12 @@ static void test_all_functions_reject_null_stack(void) {
 static void test_delete_of_already_nulled_pointer(void) {
         ErrorCode err = CESSE_OK;
         Stack* s = stack_new(&err);
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
         ASSERT_NULL(s);
+        /* deliberate no-op (mirrors free(NULL)), not an error */
         err = CESSE_OK;
-        stack_delete(&s, &err, NULL, false);
-        ASSERT_EQ(err, CESSE_ERR_NULLARG);
+        stack_delete(&s, &err, NULL);
+        ASSERT_EQ(err, CESSE_OK);
 }
 
 static void test_error_ptr_may_be_null_everywhere(void) {
@@ -95,7 +96,7 @@ static void test_error_ptr_may_be_null_everywhere(void) {
         stack_pop(s, NULL);
         stack_pop(s, NULL); /* empty now -- error path with NULL error */
         stack_top(s, NULL); /* empty -- error path with NULL error */
-        stack_delete(&s, NULL, NULL, false);
+        stack_delete(&s, NULL, NULL);
 }
 
 static void test_deep_push_pop_cycle(void) {
@@ -117,7 +118,7 @@ static void test_deep_push_pop_cycle(void) {
                 }
                 ASSERT_EQ(stack_size(s, NULL), (size_t)0);
         }
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
 }
 
 int main(void) {

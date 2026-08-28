@@ -38,7 +38,7 @@ static void test_get_out_of_bounds(void) {
         got = array_get(a, (size_t)-1, &err); /* huge index, still OOB */
         ASSERT_NULL(got);
         ASSERT_EQ(err, CESSE_ERR_OUT_OF_BOUNDS);
-        array_delete(&a, &err, NULL, false);
+        array_delete(&a, &err, NULL);
 }
 
 static void test_set_null_object(void) {
@@ -50,7 +50,7 @@ static void test_set_null_object(void) {
         void* r = array_set(a, 0, NULL, &err);
         ASSERT_NULL(r);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
-        array_delete(&a, &err, NULL, false);
+        array_delete(&a, &err, NULL);
 }
 
 static void test_push_null_object(void) {
@@ -60,7 +60,7 @@ static void test_push_null_object(void) {
         array_push(a, NULL, &err);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
         ASSERT_EQ(array_size(a, NULL), (size_t)0); /* nothing should have been added */
-        array_delete(&a, &err, NULL, false);
+        array_delete(&a, &err, NULL);
 }
 
 static void test_pop_empty(void) {
@@ -70,7 +70,7 @@ static void test_pop_empty(void) {
         void* v = array_pop(a, &err);
         ASSERT_NULL(v);
         ASSERT_EQ(err, CESSE_ERR_EMPTY);
-        array_delete(&a, &err, NULL, false);
+        array_delete(&a, &err, NULL);
 }
 
 static void test_remove_out_of_bounds(void) {
@@ -80,7 +80,7 @@ static void test_remove_out_of_bounds(void) {
         void* v = array_remove(a, 0, &err); /* empty array */
         ASSERT_NULL(v);
         ASSERT_EQ(err, CESSE_ERR_OUT_OF_BOUNDS);
-        array_delete(&a, &err, NULL, false);
+        array_delete(&a, &err, NULL);
 }
 
 static void test_swap_out_of_bounds(void) {
@@ -94,16 +94,16 @@ static void test_swap_out_of_bounds(void) {
         err = CESSE_OK;
         array_swap(a, 5, 0, &err);
         ASSERT_EQ(err, CESSE_ERR_OUT_OF_BOUNDS);
-        array_delete(&a, &err, NULL, false);
+        array_delete(&a, &err, NULL);
 }
 
 static void test_all_functions_reject_null_array(void) {
         ErrorCode err;
 
-        err = CESSE_OK; array_delete(NULL, &err, NULL, false);
+        err = CESSE_OK; array_delete(NULL, &err, NULL);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
 
-        err = CESSE_OK; array_clear(NULL, &err, NULL, false);
+        err = CESSE_OK; array_clear(NULL, &err, NULL);
         ASSERT_EQ(err, CESSE_ERR_NULLARG);
 
         err = CESSE_OK; array_set(NULL, 0, &err, &err); /* dummy non-null object pointer */
@@ -137,14 +137,15 @@ static void test_all_functions_reject_null_array(void) {
 static void test_delete_of_already_nulled_pointer(void) {
         ErrorCode err = CESSE_OK;
         Array* a = array_new(4, &err);
-        array_delete(&a, &err, NULL, false);
+        array_delete(&a, &err, NULL);
         ASSERT_NULL(a);
         /* calling delete again on the now-NULL Array* is exactly the
          * scenario a use-after-double-free bug would come from --
-         * must be rejected, not crash. */
+         * must be a safe no-op (deliberately, not a crash), not an
+         * error -- mirrors free(NULL) being well-defined and silent. */
         err = CESSE_OK;
-        array_delete(&a, &err, NULL, false);
-        ASSERT_EQ(err, CESSE_ERR_NULLARG);
+        array_delete(&a, &err, NULL);
+        ASSERT_EQ(err, CESSE_OK);
 }
 
 static void test_error_ptr_may_be_null_everywhere(void) {
@@ -163,7 +164,7 @@ static void test_error_ptr_may_be_null_everywhere(void) {
         array_pop(a, NULL);
         array_pop(a, NULL); /* now empty -- error path with NULL error */
         array_get(a, 99, NULL); /* out of bounds, NULL error */
-        array_delete(&a, NULL, NULL, false);
+        array_delete(&a, NULL, NULL);
 }
 
 static void test_pop_shrink_then_regrow_preserves_data(void) {
@@ -183,7 +184,7 @@ static void test_pop_shrink_then_regrow_preserves_data(void) {
         }
         ASSERT_EQ(err, CESSE_OK);
         ASSERT_EQ(array_size(a, NULL), (size_t)25);
-        array_delete(&a, &err, NULL, false);
+        array_delete(&a, &err, NULL);
 }
 
 int main(void) {

@@ -57,7 +57,7 @@ static void test_stack_fuzz_against_shadow(void) {
                 ASSERT_EQ(stack_size(s, NULL), shadow_size);
         }
 
-        stack_delete(&s, &err, NULL, false);
+        stack_delete(&s, &err, NULL);
         rng_delete(&rng, &err);
         free(pool);
         free(shadow);

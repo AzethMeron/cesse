@@ -80,7 +80,7 @@ static void test_array_fuzz_against_shadow(void) {
                 ASSERT_EQ(*(int*)array_get(a, i, NULL), shadow[i]);
         }
 
-        array_delete(&a, &err, NULL, false);
+        array_delete(&a, &err, NULL);
         rng_delete(&rng, &err);
         free(pool);
         free(shadow);
