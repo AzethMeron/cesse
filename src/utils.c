@@ -4,7 +4,7 @@
 
 #include <stddef.h>
 
-const char* ErrorCodeo_cstring(const ErrorCode* error) {
+const char* error_code_to_cstring(const ErrorCode* error) {
 	if(error == NULL) {
 		return "ErrorCodeo_cstring: NULL error_code pointer passed to decode. Not library bug, but user's incorrect usage.";
 	}
