@@ -542,7 +542,7 @@ EXTRACT_PACKAGE        = NO
 # included in the documentation.
 # The default value is: NO.
 
-EXTRACT_STATIC         = YES
+EXTRACT_STATIC         = NO
 
 # If the EXTRACT_LOCAL_CLASSES tag is set to YES, classes (and structs) defined
 # locally in source files will be included in the documentation. If set to NO,
@@ -943,7 +943,19 @@ WARN_LOGFILE           = build/docs/doxygen_warnings.log
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = README.md headers src
+# cesse-specific: deliberately headers/ only, not src/. headers/ *is*
+# the public API contract -- every type and function a consumer needs
+# is declared there. Every cesse type is opaque (PIMPL: `typedef
+# struct X X;`, full definition private to its .c file), so scanning
+# src/ too would need Doxygen to see those private struct bodies,
+# which it then displays as public members -- exactly backwards for a
+# PIMPL API. The only things src/ would add are call/caller graphs and
+# static-helper documentation, both squarely "how it's implemented"
+# rather than "how to use it", and not worth reintroducing the leak
+# risk for. If you ever want an internals/maintainer doc build instead
+# of this public-API one, that's a good candidate for a second,
+# separate Doxyfile rather than complicating this one.
+INPUT                  = README.md headers
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -1022,7 +1034,14 @@ EXCLUDE_PATTERNS       =
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # ANamespace::AClass, ANamespace::*Test
 
-EXCLUDE_SYMBOLS        =
+# cesse-specific: left empty deliberately. INPUT below only scans
+# headers/, not src/ -- so there's no full struct definition anywhere
+# in the doc set to merge with each header's opaque `typedef struct X
+# X;`, and no PIMPL-internals-leak problem to work around. (An earlier
+# version of this config also scanned src/ for call graphs, which
+# required exactly this kind of workaround here -- see INPUT's comment
+# for why that trade wasn't worth it.)
+EXCLUDE_SYMBOLS        = 
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories
 # that contain example code fragments that are included (see the \include
@@ -2633,7 +2652,7 @@ INCLUDED_BY_GRAPH      = YES
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-CALL_GRAPH             = YES
+CALL_GRAPH             = NO
 
 # If the CALLER_GRAPH tag is set to YES then doxygen will generate a caller
 # dependency graph for every global function or class method.
@@ -2645,7 +2664,7 @@ CALL_GRAPH             = YES
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-CALLER_GRAPH           = YES
+CALLER_GRAPH           = NO
 
 # If the GRAPHICAL_HIERARCHY tag is set to YES then doxygen will graphical
 # hierarchy of all classes instead of a textual one.
