@@ -11,7 +11,7 @@ static void test_all_known_codes_have_distinct_strings(void) {
         size_t n = sizeof codes / sizeof codes[0];
         for (size_t i = 0; i < n; i++) {
                 ErrorCode code = (ErrorCode)codes[i];
-                const char* s = ErrorCodeo_cstring(&code);
+                const char* s = error_code_to_cstring(&code);
                 ASSERT_NOT_NULL(s);
                 ASSERT_TRUE(s[0] != '\0');
         }
@@ -20,19 +20,19 @@ static void test_all_known_codes_have_distinct_strings(void) {
 static void test_ok_string_differs_from_error_strings(void) {
         ErrorCode ok = CESSE_OK;
         ErrorCode err = CESSE_ERR_ALLOC;
-        const char* ok_str = ErrorCodeo_cstring(&ok);
-        const char* err_str = ErrorCodeo_cstring(&err);
+        const char* ok_str = error_code_to_cstring(&ok);
+        const char* err_str = error_code_to_cstring(&err);
         ASSERT_TRUE(strcmp(ok_str, err_str) != 0);
 }
 
 static void test_null_pointer_handled_without_crash(void) {
-        const char* s = ErrorCodeo_cstring(NULL);
+        const char* s = error_code_to_cstring(NULL);
         ASSERT_NOT_NULL(s);
 }
 
 static void test_unrecognized_code_handled(void) {
         ErrorCode bogus = (ErrorCode)9999;
-        const char* s = ErrorCodeo_cstring(&bogus);
+        const char* s = error_code_to_cstring(&bogus);
         ASSERT_NOT_NULL(s);
 }
 
