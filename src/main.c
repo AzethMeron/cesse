@@ -11,19 +11,12 @@
 #include "cesse/macros.h"
 
 void* alloc_double(const double value);
-ErrorCode freer(void** addr);
 bool compare(void* left, void* right);
 
 void* alloc_double(const double value) {
 	void* ptr = malloc(sizeof(value));
 	*CAST(ptr, double*) = value;
 	return ptr;
-}
-
-ErrorCode freer(void** addr) {
-	free(*addr);
-	*addr = NULL;
-	return CESSE_OK;
 }
 
 bool compare(void* left, void* right) {
@@ -150,7 +143,7 @@ int main(int argc, char* argv[]) {
 		printf("%.2f ", *item);
 	}
 	printf("\nMax capacity: %ld\n", array_capacity(array, NULL));
-	array_delete(&array, &error, freer);
+	array_delete(&array, &error, default_delete_function);
 	PRINT_ERROR(error);
 	return 0;
 }
