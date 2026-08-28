@@ -5,11 +5,14 @@
 #include "cesse/utils.h"
 #include "cesse/array.h"
 
+// API is here. Implementation will be bit later.
+// keys are C-Strings. Keys within map are owned by the map; keys in the Array keylist are copied and owned by the user
+
 typedef struct Map Map;
 
 Map* map_new(ErrorCode* error);
-void map_delete(Map** map, ErrorCode* error, function_free freer, bool free_as_fallback);
-void map_clear(Map* map, ErrorCode* error, function_free freer, bool free_as_fallback);
+void map_delete(Map** map, ErrorCode* error, function_delete freer);
+void map_clear(Map* map, ErrorCode* error, function_delete freer);
 void* map_set(Map* map, const char* key,  void* value, ErrorCode* error);
 void* map_get(Map* map, const char* key, ErrorCode* error);
 bool map_contains(Map* map, const char* key, ErrorCode* error);
