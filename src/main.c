@@ -34,7 +34,7 @@ bool compare(void* left, void* right) {
 	return *l < *r;
 }
 
-#define PRINT_ERROR(error) { if(error) { printf("Error %d: %s", error, ErrorCodeo_cstring(&error)); } }
+#define PRINT_ERROR(error) { if(error) { printf("Error %d: %s", error, error_code_to_cstring(&error)); } }
 
 int main(int argc, char* argv[]) {
 	if(argc >= 1) { printf("Hello from %s\n", argv[0]); }
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
 		printf("%.2f ", *item);
 	}
 	printf("\nMax capacity: %ld\n", array_capacity(array, NULL));
-	array_delete(&array, &error, freer, false);
+	array_delete(&array, &error, freer);
 	PRINT_ERROR(error);
 	return 0;
 }

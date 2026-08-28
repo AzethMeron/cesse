@@ -106,13 +106,13 @@ void array_clear(Array* array, ErrorCode* error, function_delete freer) {
 		void* object = array_pop(array, &local_err);
 		if(local_err) { // Should be impossible
 			SET_ERROR(error, local_err);
-			fprintf(stderr, "array_clear: internal error during cleanup. Continuing either way, but memory leaks are likely.\nError code %d -> %s", local_err, ErrorCodeo_cstring(&local_err)); 
+			fprintf(stderr, "array_clear: internal error during cleanup. Continuing either way, but memory leaks are likely.\nError code %d -> %s", local_err, error_code_to_cstring(&local_err)); 
 			return; 
 		} 
 		if(freer) {
 			local_err = freer(&object);
 			if(local_err) {
-				fprintf(stderr, "Error occured in array_clear while freeing contents.\nError code %d -> %s. Continuing either way.", local_err, ErrorCodeo_cstring(&local_err));
+				fprintf(stderr, "Error occured in array_clear while freeing contents.\nError code %d -> %s. Continuing either way.", local_err, error_code_to_cstring(&local_err));
 			}
 		}
 	}

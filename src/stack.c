@@ -46,13 +46,13 @@ void stack_clear(Stack* stack, ErrorCode* error, function_delete freer) {
 		void* object = stack_pop(stack, &local_err);
 		if(local_err) { // Should be impossible
 			SET_ERROR(error, local_err);
-			fprintf(stderr, "stack_clear: internal error during cleanup. Continuing either way, but memory leaks are likely.\nError code %d -> %s", local_err, ErrorCodeo_cstring(&local_err)); 
+			fprintf(stderr, "stack_clear: internal error during cleanup. Continuing either way, but memory leaks are likely.\nError code %d -> %s", local_err, error_code_to_cstring(&local_err)); 
 			return; 
 		} 
 		if(freer) {
 			local_err = freer(&object);
 			if(local_err) {
-				fprintf(stderr, "Error occured in stack_clear while freeing contents.\nError code %d -> %s. Continuing either way.", local_err, ErrorCodeo_cstring(&local_err));
+				fprintf(stderr, "Error occured in stack_clear while freeing contents.\nError code %d -> %s. Continuing either way.", local_err, error_code_to_cstring(&local_err));
 			}
 		}
 	}
