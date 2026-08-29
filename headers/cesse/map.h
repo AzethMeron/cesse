@@ -4,6 +4,9 @@
 #include "cesse/bool.h"
 #include "cesse/utils.h"
 #include "cesse/array.h"
+#include "cesse/functions.h"
+
+#include <stddef.h>
 
 // API is here. Implementation will be bit later.
 // keys are C-Strings. Keys within map are owned by the map; keys in the Array keylist are copied and owned by the user

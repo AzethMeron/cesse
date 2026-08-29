@@ -2,6 +2,7 @@
 #include "cesse/sort.h"
 #include "cesse/utils.h"
 #include "cesse/macros.h"
+#include "cesse/functions.h"
 
 #include <stddef.h>
 #include <stdlib.h>
