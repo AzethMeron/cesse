@@ -5,7 +5,7 @@
 * @file rng.h
 * @author Jakub Grzana
 * @date August 2026
-* @brief xoshiro256** pseudorandom generator, plus common distributions built on it
+* @brief xoshiro256** pseudorandom generator, plus common distributions built on top of it
 */
 
 #include "cesse/utils.h"
@@ -15,9 +15,7 @@
 #include <stdint.h>
 
 /**
-* Rng type: an xoshiro256** generator instance. Not cryptographically
-* secure -- suitable for simulations, testing, games, and similar
-* general-purpose use, not for anything security-sensitive.
+* Xoshiro256** generator type.
 */
 typedef struct Rng Rng; // xoshiro256**
 
@@ -27,7 +25,7 @@ typedef struct Rng Rng; // xoshiro256**
 * the same sequence of outputs.
 *
 * Time complexity: O(1).
-* \param seed The seed value. Any uint64_t value is accepted, including 0.
+* \param seed The seed value. Any uint64_t value is accepted.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_ALLOC.
 * \return Pointer to the created Rng, or NULL if an error occurred.
@@ -50,12 +48,9 @@ Rng* rng_new_time(ErrorCode* error); // use time(NULL) as seed
 *
 * Time complexity: O(1).
 * \param rng Pointer-to-pointer of the Rng. Once freed, the pointer is
-*        set to NULL (hence the double pointer).
+*        set to NULL (hence the double pointer). Must NOT be NULL. *rng==NULL is a no-op.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (rng itself, i.e. the
-*        pointer-to-pointer, is NULL, or it already points to NULL --
-*        unlike Array/Stack/Map, deleting an already-NULL Rng is
-*        reported as an error here rather than treated as a silent no-op).
+*        Possible codes: CESSE_ERR_NULLARG.
 */
 void rng_delete(Rng** rng, ErrorCode* error);
 
@@ -91,8 +86,7 @@ uint64_t rng_next_u64(Rng* rng, ErrorCode* error);
 * \param rng The generator to draw from. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG.
-* \return A value in [0, 1), or 0.0 if an error occurred (0.0 is also a
-*         legitimate, non-error result within that range).
+* \return A value in [0, 1), or 0.0 if an error occurred (0.0 may also be legitimate result - check error to distinguish).
 */
 double   rng_next_double(Rng* rng, ErrorCode* error); /* uniform [0, 1) */
 
@@ -106,13 +100,14 @@ double   rng_next_double(Rng* rng, ErrorCode* error); /* uniform [0, 1) */
 * loop more than once, but the rejection probability is always well
 * under 50% for any range, so more than a couple of iterations is
 * extremely unlikely in practice.
+*
 * \param rng The generator to draw from. Must not be NULL.
 * \param min Lower bound, inclusive.
 * \param max Upper bound, inclusive. Must be >= min.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (min > max).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG.
 * \return A value in [min, max], or 0 if an error occurred (0 may also
-*         be a legitimate, non-error result if it falls within [min, max]).
+*         be a legitimate, non-error result if it falls within [min, max] - check error to distinguish).
 */
 int64_t  dist_uniform_i64(Rng* rng, const int64_t min, const int64_t max, ErrorCode* error); /* inclusive both ends */
 
@@ -124,7 +119,7 @@ int64_t  dist_uniform_i64(Rng* rng, const int64_t min, const int64_t max, ErrorC
 * \param min Lower bound, inclusive.
 * \param max Upper bound, exclusive. Must be > min.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (min >= max).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG.
 * \return A value in [min, max), or 0.0 if an error occurred.
 */
 double   dist_uniform_double(Rng* rng, const double min, const double max, ErrorCode* error);  /* [min, max) */
@@ -136,9 +131,9 @@ double   dist_uniform_double(Rng* rng, const double min, const double max, Error
 * \param rng The generator to draw from. Must not be NULL.
 * \param p Probability of returning true. Must be within [0.0, 1.0].
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (p outside [0.0, 1.0]).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG.
 * \return true or false, or false if an error occurred (false is also a
-*         legitimate, non-error outcome).
+*         legitimate, non-error outcome - check error to distinguish).
 */
 bool     dist_bernoulli(Rng* rng, const double p, ErrorCode* error);                     /* true w/ probability p */
 
@@ -148,11 +143,12 @@ bool     dist_bernoulli(Rng* rng, const double p, ErrorCode* error);            
 * Time complexity: O(1) expected (an internal redraw only happens on the
 * astronomically unlikely case of drawing exactly 0.0, needed to avoid
 * an undefined log(0)).
+*
 * \param rng The generator to draw from. Must not be NULL.
 * \param mean The distribution's mean.
 * \param stddev The distribution's standard deviation. Must be >= 0.0.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (stddev < 0.0).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG.
 * \return The sampled value, or 0.0 if an error occurred.
 */
 double   dist_normal(Rng* rng, const double mean, const double stddev, ErrorCode* error);
