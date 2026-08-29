@@ -110,6 +110,7 @@ Stack* stack_copy(Stack* stack, ErrorCode* error, function_copy copier, function
 	ERROR_ON_COND(stack==NULL, error, CESSE_ERR_NULLARG, return NULL;);
 	ERROR_ON_COND(copier==NULL, error, CESSE_ERR_NULLARG, return NULL;);
 	ERROR_ON_COND(freer==NULL, error, CESSE_ERR_NULLARG, return NULL;);
+	ERROR_ON_COND(stack->size > (SIZE_MAX/sizeof(void*)), error, CESSE_ERR_OVERFLOW, return NULL;); // In a moment we need to allocate buffer to recreate a stack; it's better to check now if that's possible
 	ErrorCode local_err = CESSE_OK;
 	Stack* copy = stack_new(&local_err);
 	ERROR_ON_COND(copy==NULL, error, local_err, return NULL;);

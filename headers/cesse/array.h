@@ -5,7 +5,7 @@
 * @file array.h
 * @author Jakub Grzana
 * @date August 2026
-* @brief Dynamic array that can store borrowed objects (as void*)
+* @brief Dynamic array that stores borrowed objects (as void*)
 */
 
 #include "cesse/bool.h"

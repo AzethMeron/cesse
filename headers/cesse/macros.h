@@ -5,12 +5,7 @@
 * @file macros.h
 * @author Jakub Grzana
 * @date August 2026
-* @brief Small preprocessor helpers used throughout cesse's own implementation
-*
-* These are internal plumbing, not part of the public data-structure API,
-* but they're exposed here because function_delete/function_copy
-* implementations a user writes will often want the same conventions
-* (e.g. SET_ERROR) for consistency with the rest of cesse.
+* @brief Preprocessor helpers.
 */
 
 #include <stdio.h>
@@ -51,16 +46,6 @@
 * an ErrorCode variable across several calls without resetting it to
 * CESSE_OK first -- doing so makes a later successful call look like it
 * silently inherited an earlier, unrelated failure.
-*
-* Called at the top of every public cesse function that takes an
-* ErrorCode* parameter (except error_code_to_cstring, whose ErrorCode*
-* is an input to decode rather than an output channel, so an
-* already-non-OK value there is normal, not a mistake).
-*
-* Note: if one public cesse function calls another with the same
-* error_ptr (e.g. array_delete calling array_clear), a single stale
-* value will trigger this warning once per function in that chain, not
-* just once -- each layer is checking the same root cause independently.
 *
 * Time complexity: O(1).
 */

@@ -26,6 +26,8 @@
  * scratch buffer is allocated up front and reused for every merge.
  */
 
+#define MAX_BUFFER_LENGTH (SIZE_MAX/sizeof(void*))
+
 static inline bool is_before(function_compare_lt compare_lt, void* a, void* b) {
         return compare_lt(b, a);
 }
@@ -56,14 +58,15 @@ static void merge_sort(void** anchor, size_t lo, size_t hi, function_compare_lt 
 
 void sort(void** begin, const size_t length, function_compare_lt compare_lt, ErrorCode* error) {
 	ASSURE_ERROR_OK(error);
-        ERROR_ON_COND(begin==NULL, error, CESSE_ERR_NULLARG, return;);
-        ERROR_ON_COND(compare_lt==NULL, error, CESSE_ERR_NULLARG, return;);
-        if (length < 2) { return; }
+    ERROR_ON_COND(begin==NULL, error, CESSE_ERR_NULLARG, return;);
+    ERROR_ON_COND(compare_lt==NULL, error, CESSE_ERR_NULLARG, return;);
+    if (length < 2) { return; }
 
-        void** scratch = malloc(length * sizeof(void*));
-        ERROR_ON_COND(scratch==NULL, error, CESSE_ERR_ALLOC, return;);
+	ERROR_ON_COND(length > MAX_BUFFER_LENGTH, error, CESSE_ERR_OVERFLOW, return;);
+    void** scratch = malloc(length * sizeof(void*));
+    ERROR_ON_COND(scratch==NULL, error, CESSE_ERR_ALLOC, return;);
 
-        merge_sort(begin, 0, length - 1, compare_lt, scratch);
+    merge_sort(begin, 0, length - 1, compare_lt, scratch);
 
-        free(scratch);
+    free(scratch);
 }
