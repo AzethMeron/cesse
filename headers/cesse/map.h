@@ -39,8 +39,8 @@ Map* map_new(ErrorCode* error);
 
 /**
 * Delete a Map and free its internal keys and bucket storage.
-* Unless function_delete is provided, it does NOT free the stored
-* values themselves.
+* Unless function_delete is provided, it does NOT free stored object.
+* It's recommanded to first drain the map and free objects on your own, as this gives better error-handling options.
 *
 * Time complexity: O(n), where n is the number of entries still stored.
 * \param map Pointer-to-pointer of the map. Once freed, the pointer is
@@ -72,9 +72,7 @@ void map_clear(Map* map, ErrorCode* error, function_delete freer);
 * returned rather than freed -- the caller decides what to do with it.
 * Note that key is copied and owned by the map while value is borrowed and owned by user.
 *
-* Time complexity: amortized O(1) average; O(n) on the rare occasion a
-* resize is triggered, or worst-case O(n) if many keys collide into the
-* same bucket (not expected in normal use with FNV-1a).
+* Time complexity: amortized O(1) average; O(n) on rehash or in worst-case scenario where all keys collide
 * \param map The map to modify. Must not be NULL.
 * \param key The key to set. Must not be NULL.
 * \param value The value to associate with key (borrowed). Must not be NULL.
@@ -155,7 +153,7 @@ void* map_remove(Map* map, const char* key, ErrorCode* error);
 * map is cleaned up via freer before returning NULL -- freer is
 * therefore required (not optional), since the values being cleaned up
 * were just created by copier, not borrowed from anywhere else that
-* might already own them. Recovery is best-effor but no-guarantee,
+* might already own them. Recovery is best-effor but no-guarantee.
 *
 * Time complexity: O(n), where n is the number of entries.
 * \param map The map to copy. Must not be NULL.

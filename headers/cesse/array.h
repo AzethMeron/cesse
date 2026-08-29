@@ -28,14 +28,10 @@ typedef struct Array Array;
 *
 * Time complexity: O(n), where n is the resulting capacity (the buffer
 * is zero-initialized).
-* \param capacity Target capacity. Values below the library's internal
-*        minimum are clamped up to it; otherwise the array's actual
-*        capacity is exactly what's requested here -- unlike growth
-*        triggered later by array_push, this initial capacity is not
-*        itself rounded up to the nearest power of two.
+* \param capacity Target capacity, though it's clamped to the next power of two or to internal minimum of 8, whichever is higher.
+         So it's more of suggestion.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_OVERFLOW (capacity exceeds array_max_capacity()),
-*        CESSE_ERR_ALLOC.
+*        Possible codes: CESSE_ERR_OVERFLOW, CESSE_ERR_ALLOC.
 * \return Pointer to created object, or NULL if error occured.
 */
 Array* array_new(size_t capacity, ErrorCode* error);
@@ -43,15 +39,15 @@ Array* array_new(size_t capacity, ErrorCode* error);
 /**
 * Delete created array and free its internals.
 * Unless function_delete is provided, it does NOT free stored object.
-* It's recommanded to first drain the array with array_pop function and free objects on your own, as this gives better error-handling 
-* options.
+* It's recommanded to first drain the array and free objects on your own, as this gives better error-handling options.
 *
 * Time complexity: O(n), where n is the number of elements still stored.
 * \param array Pointer-to-pointer of array object. Once freed, pointer is set to NULL (thus double pointer is necessary).
-*        Passing a pointer-to-NULL is a safe no-op, mirroring free(NULL).
+*        Passing a pointer-to-NULL is a safe no-op.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (array itself, i.e. the pointer-to-pointer, is NULL).
+*        Possible codes: CESSE_ERR_NULLARG.
 * \param freer Pointer to function used to free objects still stored in Array. Pass NULL to ignore.
+*        failure reported by freer itself is printed to stderr but does not abort the deletion (may lead to memory leaks).
 */
 void array_delete(Array** array, ErrorCode* error, function_delete freer);
 
@@ -65,7 +61,7 @@ void array_delete(Array** array, ErrorCode* error, function_delete freer);
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG.
 * \param freer Function used to free the objects being removed. Pass NULL to ignore (objects are left untouched).
-*        A failure reported by freer itself is printed to stderr but does not abort the clear.
+*        A failure reported by freer itself is printed to stderr but does not abort the deletion (may lead to memory leaks).
 */
 void array_clear(Array* array, ErrorCode* error, function_delete freer);
 
@@ -77,7 +73,7 @@ void array_clear(Array* array, ErrorCode* error, function_delete freer);
 * \param idx Index to read. Must be < array_size(array).
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_OUT_OF_BOUNDS.
-* \return The stored object (still owned by the array), or NULL if an error occurred.
+* \return The stored object, or NULL if an error occurred.
 */
 void* array_get(Array* array, const size_t idx, ErrorCode* error);
 
@@ -89,24 +85,19 @@ void* array_get(Array* array, const size_t idx, ErrorCode* error);
 * \param idx Index to overwrite. Must be < array_size(array).
 * \param object The new object to store (borrowed). Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (array or object is NULL), CESSE_ERR_OUT_OF_BOUNDS.
-* \return The object that was previously at idx (now the caller's
-*         responsibility, if it needs freeing), or NULL if an error occurred.
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_OUT_OF_BOUNDS.
+* \return The object that was previously at idx or NULL if an error occurred.
 */
 void* array_set(Array* array, const size_t idx, void* object, ErrorCode* error);
 
 /**
 * Append object to the end of the array, growing capacity if necessary.
 *
-* Time complexity: amortized O(1); O(n) on the rare occasion a resize is
-* triggered (capacity is doubled, rounded up to the next power of two,
-* so resizes become exponentially rarer as the array grows).
+* Time complexity: amortized O(1); O(n) if resize needed
 * \param array The array to push onto. Must not be NULL.
 * \param object The object to store (borrowed). Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (array or object is NULL),
-*        CESSE_ERR_OVERFLOW (the array is already at array_max_capacity()),
-*        CESSE_ERR_ALLOC (a growth-triggered reallocation failed).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_OVERFLOW, CESSE_ERR_ALLOC
 */
 void array_push(Array* array, void* object, ErrorCode* error); // object is borrowed
 
@@ -115,16 +106,12 @@ void array_push(Array* array, void* object, ErrorCode* error); // object is borr
 * drain an array one element at a time (compare array_remove, which
 * additionally supports removing from the middle at higher cost).
 *
-* Time complexity: amortized O(1); O(n) on the rare occasion a
-* shrink-to-fit is triggered.
+* Time complexity: amortized O(1); O(n) if resize occurs
+*
 * \param array The array to pop from. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_EMPTY (the array has no elements),
-*        CESSE_ERR_ALLOC (a shrink-triggered reallocation failed -- note
-*        the element has already been successfully removed by this
-*        point regardless, so this specific failure does not lose data,
-*        only the opportunity to reclaim memory this time).
-* \return The removed object, now owned by the caller, or NULL if an error occurred.
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_EMPTY, CESSE_ERR_ALLOC 
+* \return The removed object or NULL if an error occurred.
 */
 void* array_pop(Array* array, ErrorCode* error); // doesn't free memory! Also this is the default way of emptying array
 
@@ -168,14 +155,12 @@ void array_swap(Array* array, const size_t first, const size_t second, ErrorCode
 * to close the gap. Removing the last index delegates to array_pop, at
 * array_pop's cheaper cost.
 *
-* Time complexity: O(1) when idx is the last valid index; O(n) otherwise,
-* where n is the number of elements after idx that must shift.
+* Time complexity: O(n) where n is the number of elements after idx that must shift.
+*
 * \param array The array to modify. Must not be NULL.
 * \param idx Index to remove. Must be < array_size(array).
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_OUT_OF_BOUNDS,
-*        CESSE_ERR_ALLOC (a shrink-triggered reallocation failed; as
-*        with array_pop, the element has already been removed regardless).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_OUT_OF_BOUNDS, CESSE_ERR_ALLOC
 * \return The removed object, now owned by the caller, or NULL if an error occurred.
 */
 void* array_remove(Array* array, const size_t idx, ErrorCode* error);
@@ -183,14 +168,15 @@ void* array_remove(Array* array, const size_t idx, ErrorCode* error);
 /**
 * Sort the array's elements in place, in descending order (largest
 * first), stably, using compare_lt to order elements.
+* Stable-sort the array's elements in place in non-ascending order (largest first), using compare_lt to order elements.
 *
 * Time complexity: O(n log n).
 * Space complexity: O(n) auxiliary.
+*
 * \param array The array to sort. Must not be NULL.
 * \param compare_lt Comparison function; see function_compare_lt's contract. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (array or compare_lt is NULL),
-*        CESSE_ERR_ALLOC (the sort's scratch buffer allocation failed).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_ALLOC
 */
 void array_sort(Array* array, function_compare_lt compare_lt, ErrorCode* error);
 
@@ -199,8 +185,8 @@ void array_sort(Array* array, function_compare_lt compare_lt, ErrorCode* error);
 * library's internal minimum, whichever is larger), reclaiming unused
 * memory. A no-op if there's nothing worth reclaiming.
 *
-* Time complexity: O(n), where n is the resulting capacity (existing
-* elements are copied into the new, smaller buffer).
+* Time complexity: O(n), where n is the resulting capacity
+*
 * \param array The array to shrink. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_ALLOC.
@@ -225,14 +211,12 @@ size_t array_max_capacity();
 * array is cleaned up via freer before returning NULL -- freer is
 * therefore required (not optional), since the objects being cleaned up
 * were just created by copier, not borrowed from anywhere else that
-* might already own them.
+* might already own them. Recovery is best-effor but no-guarantee.
 *
 * Time complexity: O(n), where n is the number of elements.
 * \param array The array to copy. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (array, copier, or freer is
-*        NULL), CESSE_ERR_OVERFLOW or CESSE_ERR_ALLOC (from allocating
-*        the new array), or whatever code copier itself reports on failure.
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_OVERFLOW, CESSE_ERR_ALLOC, whatever code copier itself reports on failure.
 * \param copier Function used to duplicate each stored object. Must not be NULL.
 * \param freer Function used to clean up already-copied objects if the
 *        copy fails partway through. Must not be NULL.

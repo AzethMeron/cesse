@@ -12,7 +12,7 @@ const char* error_code_to_cstring(const ErrorCode* error) {
 	}
 	switch(CAST(*error, cesse_error_t)) {
 		default: {
-			return "error_code_to_cstring: error code not recognized";
+			return "error_code_to_cstring: error code not recognized, perhaps custom one?";
 		} break;
 		case CESSE_OK: {
 			return "No error occured, all is OK!";
@@ -27,13 +27,13 @@ const char* error_code_to_cstring(const ErrorCode* error) {
 			return "Out-of-bounds error (accessing non-existing element, below 0 or above size)";
 		} break;
 		case CESSE_ERR_EMPTY: {
-			return "Container is empty and thus, this action is invalid (probably pop or sort)";
+			return "Container is empty and thus, this action is invalid (probably pop, remove or sort)";
 		} break;
 		case CESSE_ERR_BAD_ARG: {
-			return "Bad non-pointer argument passed in.";
+			return "Bad non-pointer argument (value) passed in.";
 		} break;
 		case CESSE_ERR_OVERFLOW: {
-			return "Data (probably size_t) overflow detected & prevented.";
+			return "Data (probably size_t) overflow detected & prevented. This usually means container's maximum capacity was reached.";
 		} break;
 		case CESSE_ERR_UNDERFLOW: {
 			return "Data (probably size_t) underflow detected & prevented.";

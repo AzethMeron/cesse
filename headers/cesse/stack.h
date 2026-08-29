@@ -37,10 +37,8 @@ Stack* stack_new(ErrorCode* error);
 
 /**
 * Delete a Stack and free its internal nodes.
-* Unless function_delete is provided, it does NOT free the stored
-* objects themselves. It's recommended to first drain the stack with
-* stack_pop and free objects on your own, as this gives better
-* error-handling options.
+* Unless function_delete is provided, it does NOT free stored object.
+* It's recommanded to first drain the stack and free objects on your own, as this gives better error-handling options.
 *
 * Time complexity: O(n), where n is the number of elements still stored.
 * \param stack Pointer-to-pointer of the stack. Once freed, the pointer
