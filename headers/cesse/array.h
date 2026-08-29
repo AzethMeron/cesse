@@ -46,8 +46,8 @@ Array* array_new(size_t capacity, ErrorCode* error);
 *        Passing a pointer-to-NULL is a safe no-op.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG.
-* \param freer Pointer to function used to free objects still stored in Array. Pass NULL to ignore.
-*        failure reported by freer itself is printed to stderr but does not abort the deletion (may lead to memory leaks).
+* \param freer Function used to free the objects being removed. Pass NULL to ignore (meaning memory leak if there're objects in container)
+*        A failure reported by freer itself is printed to stderr but does not abort the clear (that also will lead to memory leaks).
 */
 void array_delete(Array** array, ErrorCode* error, function_delete freer);
 
@@ -60,8 +60,8 @@ void array_delete(Array** array, ErrorCode* error, function_delete freer);
 * \param array The array to clear. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG.
-* \param freer Function used to free the objects being removed. Pass NULL to ignore (objects are left untouched).
-*        A failure reported by freer itself is printed to stderr but does not abort the deletion (may lead to memory leaks).
+* \param freer Function used to free the objects being removed. Pass NULL to ignore (meaning memory leak if there're objects in container)
+*        A failure reported by freer itself is printed to stderr but does not abort the clear (that also will lead to memory leaks).
 */
 void array_clear(Array* array, ErrorCode* error, function_delete freer);
 

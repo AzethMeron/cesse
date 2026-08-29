@@ -5,7 +5,7 @@
 * @file rng.h
 * @author Jakub Grzana
 * @date August 2026
-* @brief xoshiro256** pseudorandom generator, plus common distributions built on top of it
+* @brief pseudorandom number generator + common distributions
 */
 
 #include "cesse/utils.h"
@@ -96,7 +96,7 @@ double   rng_next_double(Rng* rng, ErrorCode* error); /* uniform [0, 1) */
 * Draw a uniformly random int64_t in [min, max] (both ends inclusive),
 * with no modulo bias, via rejection sampling.
 *
-* Time complexity: O(1) expected. Rejection sampling can in principle
+* Time complexity: Unbounded, O(1) expected. Rejection sampling can in principle
 * loop more than once, but the rejection probability is always well
 * under 50% for any range, so more than a couple of iterations is
 * extremely unlikely in practice.
@@ -115,6 +115,7 @@ int64_t  dist_uniform_i64(Rng* rng, const int64_t min, const int64_t max, ErrorC
 * Draw a uniformly random double in [min, max).
 *
 * Time complexity: O(1).
+*
 * \param rng The generator to draw from. Must not be NULL.
 * \param min Lower bound, inclusive.
 * \param max Upper bound, exclusive. Must be > min.
@@ -128,6 +129,7 @@ double   dist_uniform_double(Rng* rng, const double min, const double max, Error
 * Draw true with probability p, false otherwise.
 *
 * Time complexity: O(1).
+*
 * \param rng The generator to draw from. Must not be NULL.
 * \param p Probability of returning true. Must be within [0.0, 1.0].
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
@@ -140,9 +142,7 @@ bool     dist_bernoulli(Rng* rng, const double p, ErrorCode* error);            
 /**
 * Draw a sample from a normal (Gaussian) distribution via Box-Muller.
 *
-* Time complexity: O(1) expected (an internal redraw only happens on the
-* astronomically unlikely case of drawing exactly 0.0, needed to avoid
-* an undefined log(0)).
+* Time complexity: Unbounded, but astonomically unlikely to be worse than O(1)
 *
 * \param rng The generator to draw from. Must not be NULL.
 * \param mean The distribution's mean.
@@ -156,12 +156,12 @@ double   dist_normal(Rng* rng, const double mean, const double stddev, ErrorCode
 /**
 * Draw a sample from an exponential distribution via inverse-CDF sampling.
 *
-* Time complexity: O(1) expected (same astronomically-unlikely-redraw
-* caveat as dist_normal, for the same reason).
+* Time complexity: Unbounded, but astonomically unlikely to be worse than O(1)
+*
 * \param rng The generator to draw from. Must not be NULL.
 * \param lambda The distribution's rate parameter. Must be > 0.0.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (lambda <= 0.0).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG.
 * \return The sampled value, or 0.0 if an error occurred.
 */
 double   dist_exponential(Rng* rng, const double lambda, ErrorCode* error);
@@ -175,7 +175,7 @@ double   dist_exponential(Rng* rng, const double lambda, ErrorCode* error);
 * \param length Number of elements at anchor. 0 or 1 is a no-op.
 * \param rng The generator supplying randomness. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (anchor or rng is NULL).
+*        Possible codes: CESSE_ERR_NULLARG
 */
 void shuffle(void** anchor, const size_t length, Rng* rng, ErrorCode* error);
 

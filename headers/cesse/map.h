@@ -48,8 +48,8 @@ Map* map_new(ErrorCode* error);
 *        pointer-to-NULL is a safe no-op.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG 
-* \param freer Function used to free values still stored in the map. Pass NULL to ignore.
-*        A failure reported by freer itself is printed to stderr but does not abort the deletion (may lead to memory leaks).
+* \param freer Function used to free the objects being removed. Pass NULL to ignore (meaning memory leak if there're objects in container)
+*        A failure reported by freer itself is printed to stderr but does not abort the clear (that also will lead to memory leaks).
 */
 void map_delete(Map** map, ErrorCode* error, function_delete freer);
 
@@ -61,8 +61,8 @@ void map_delete(Map** map, ErrorCode* error, function_delete freer);
 * \param map The map to clear. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG.
-* \param freer Function used to free the values being removed. Pass NULL to ignore (values are left untouched).
-*        A failure reported by freer itself is printed to stderr but does not abort the clear (may lead to memory leaks).
+* \param freer Function used to free the objects being removed. Pass NULL to ignore (meaning memory leak if there're objects in container)
+*        A failure reported by freer itself is printed to stderr but does not abort the clear (that also will lead to memory leaks).
 */
 void map_clear(Map* map, ErrorCode* error, function_delete freer);
 

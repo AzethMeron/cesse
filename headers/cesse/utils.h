@@ -17,13 +17,14 @@
 * You should ALWAYS create a vessel for the error code like this:
 *   ErrorCode error = CESSE_OK;
 * then pass its address to functions as necessary. Every ErrorCode* argument
-* across cesse can also be ignored by passing NULL.
+* across cesse can also be safely ignored by passing NULL.
 *
 * Error codes are set only on error: during normal, successful execution a
 * function never touches its error parameter, so initializing your own
 * variable to CESSE_OK before the call matters -- otherwise a successful
 * call can look like it failed just because of whatever value the
-* variable already held.
+* variable already held. Passing ErrorCode uninitialized or with set error
+* will not cause cesse to error out, but it will print warning about it to stderr.
 */
 typedef uint16_t ErrorCode;
 
@@ -56,12 +57,7 @@ typedef enum cesse_error : ErrorCode {
 * Convert an error code into a human-readable, statically-allocated description string.
 *
 * Time complexity: O(1).
-* \param error_code Pointer to the code to describe. Unlike every other
-*        ErrorCode* in cesse, this one is an input to decode, not an
-*        out-parameter to report a failure into -- so passing an
-*        already-non-CESSE_OK value here is the normal, expected use,
-*        not a caller mistake. Passing NULL itself is explicitly handled
-*        (returns a diagnostic string) rather than being undefined behavior.
+* \param error_code Pointer to the code to describe. Must not be NULL.
 * \return A never-NULL, statically-allocated string that must not be
 *         free()'d. An unrecognized code also returns a descriptive
 *         string rather than crashing.
@@ -71,12 +67,11 @@ const char* error_code_to_cstring(const ErrorCode* error_code);
 /**
 * Round a capacity up to the nearest power of two.
 *
-* Time complexity: O(1) -- a fixed, small number of bit-shifts bounded by
-* the width of size_t, independent of the input value.
+* Time complexity: O(1) 
+* 
 * \param capacity The requested capacity. 0 and 1 both map to 1.
 * \return The smallest power of two >= capacity, or 0 if that value would
-*         exceed what a size_t can represent (capacity > 2^63 on a
-*         64-bit size_t). Callers must treat a 0 result as an overflow
+*         exceed what a size_t can represent. Callers must treat a 0 result as an overflow
 *         signal, not a valid capacity of zero.
 */
 size_t fit_power_of_two(size_t capacity);

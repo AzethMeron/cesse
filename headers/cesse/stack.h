@@ -5,7 +5,7 @@
 * @file stack.h
 * @author Jakub Grzana
 * @date August 2026
-* @brief Linked-list LIFO stack that can store borrowed objects (as void*)
+* @brief Linked-list LIFO stack that stores borrowed objects (as void*)
 */
 
 #include "cesse/utils.h"
@@ -16,12 +16,12 @@
 
 /**
 * Stack type (singly-linked list, LIFO).
-*
-* Like Array, Stack stores pointers to borrowed objects: by default
-* nothing is freed on clear/delete unless a function_delete is supplied.
-* Every push/pop/top allocates or frees exactly one list node, so unlike
-* Array there's no amortized cost to account for -- push and pop are
-* O(1) every time, not just on average.
+* 
+* Stack stores pointer to objects borrowed from user. By default, nothing
+* is automatically freed (user can opt-in by providing function_delete to _delete
+* and/or _clear, but it's not recommanded) It's implemented as a one-directional 
+* linked list, meaning it's simple and efficient for the task. Gives access to the top 
+* element only (which is the most recently pushed one - LIFO)
 */
 typedef struct Stack Stack;
 
@@ -43,11 +43,11 @@ Stack* stack_new(ErrorCode* error);
 * Time complexity: O(n), where n is the number of elements still stored.
 * \param stack Pointer-to-pointer of the stack. Once freed, the pointer
 *        is set to NULL (hence the double pointer). Passing a
-*        pointer-to-NULL is a safe no-op, mirroring free(NULL).
+*        pointer-to-NULL is a safe no-op.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (stack itself, i.e. the
-*        pointer-to-pointer, is NULL).
-* \param freer Function used to free objects still stored in the stack. Pass NULL to ignore (objects are left untouched).
+*        Possible codes: CESSE_ERR_NULLARG.
+* \param freer Function used to free the objects being removed. Pass NULL to ignore (meaning memory leak if there're objects in container)
+*        A failure reported by freer itself is printed to stderr but does not abort the clear (that also will lead to memory leaks).
 */
 void stack_delete(Stack** stack, ErrorCode* error, function_delete freer);
 
@@ -59,8 +59,8 @@ void stack_delete(Stack** stack, ErrorCode* error, function_delete freer);
 * \param stack The stack to clear. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG.
-* \param freer Function used to free the objects being removed. Pass NULL to ignore (objects are left untouched).
-*        A failure reported by freer itself is printed to stderr but does not abort the clear.
+* \param freer Function used to free the objects being removed. Pass NULL to ignore (meaning memory leak if there're objects in container)
+*        A failure reported by freer itself is printed to stderr but does not abort the clear (that also will lead to memory leaks).
 */
 void stack_clear(Stack* stack, ErrorCode* error, function_delete freer);
 
@@ -71,9 +71,7 @@ void stack_clear(Stack* stack, ErrorCode* error, function_delete freer);
 * \param stack The stack to push onto. Must not be NULL.
 * \param object The object to store (borrowed -- ownership stays with the caller unless a freer is used later). Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (stack or object is NULL),
-*        CESSE_ERR_OVERFLOW (the stack is already at stack_max_capacity()),
-*        CESSE_ERR_ALLOC (the new node's allocation failed).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_OVERFLOW, CESSE_ERR_ALLOC
 */
 void stack_push(Stack* stack, void* object, ErrorCode* error);
 
@@ -83,7 +81,7 @@ void stack_push(Stack* stack, void* object, ErrorCode* error);
 * Time complexity: O(1).
 * \param stack The stack to pop from. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_EMPTY (the stack has no elements).
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_EMPTY
 * \return The object that was on top, now owned by the caller, or NULL if an error occurred.
 */
 void* stack_pop(Stack* stack, ErrorCode* error);
@@ -95,7 +93,7 @@ void* stack_pop(Stack* stack, ErrorCode* error);
 * \param stack The stack to peek at. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_EMPTY.
-* \return The top object (still owned by the stack), or NULL if an error occurred.
+* \return The top object or NULL if an error occurred.
 */
 void* stack_top(Stack* stack, ErrorCode* error);
 
@@ -106,8 +104,7 @@ void* stack_top(Stack* stack, ErrorCode* error);
 * \param stack The stack to query. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
 *        Possible codes: CESSE_ERR_NULLARG.
-* \return The element count, or 0 if an error occurred (0 is otherwise a
-*         perfectly valid, non-error result too, for a genuinely empty stack).
+* \return The element count, or 0 if an error occurred (0 is valid for empty stack, so use error to distinguish).
 */
 size_t stack_size(Stack* stack, ErrorCode* error);
 
@@ -115,9 +112,7 @@ size_t stack_size(Stack* stack, ErrorCode* error);
 * Return the largest size a Stack can theoretically reach.
 *
 * Time complexity: O(1).
-* \return SIZE_MAX. In practice this is never actually reachable --
-*         memory would run out on any real machine long before a stack
-*         held this many nodes.
+* \return SIZE_MAX
 */
 size_t stack_max_capacity();
 
@@ -133,13 +128,10 @@ size_t stack_max_capacity();
 * might already own them.
 *
 * Time complexity: O(n), where n is the number of elements.
-* Space complexity: O(n) auxiliary (a temporary buffer used to reverse
-* the natural top-to-bottom traversal order before copying).
+* 
 * \param stack The stack to copy. Must not be NULL.
 * \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
-*        Possible codes: CESSE_ERR_NULLARG (stack, copier, or freer is
-*        NULL), CESSE_ERR_ALLOC (the new stack, an internal node, or the
-*        temporary reordering buffer failed to allocate), or whatever
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_ALLOC or whatever
 *        code copier itself reports on failure.
 * \param copier Function used to duplicate each stored object. Must not be NULL.
 * \param freer Function used to clean up already-copied objects if the
