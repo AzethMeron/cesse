@@ -211,10 +211,11 @@ size_t array_max_capacity() {
 Array* array_copy(Array* array, ErrorCode* error, function_copy copier, function_delete freer) {
 	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return NULL;);
 	ERROR_ON_COND(copier==NULL, error, CESSE_ERR_NULLARG, return NULL;);
+	ERROR_ON_COND(freer==NULL, error, CESSE_ERR_NULLARG, return NULL;);
 	ErrorCode local_err = CESSE_OK;
 	Array* copy = array_new(array->size, &local_err);
-	if(array->size == 0) { return copy; } // job done
 	ERROR_ON_COND(copy==NULL, error, local_err, return NULL;);
+	if(array->size == 0) { return copy; } // job done
 	for(size_t i = 0; i < array->size; ++i) {
 		void* copied_object = copier(array->data[i], &local_err);
 		if(!local_err) { array_push(copy, copied_object, &local_err); }

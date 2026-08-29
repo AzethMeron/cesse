@@ -20,6 +20,10 @@ void* alloc_double(const double value) {
 	return ptr;
 }
 
+void* copy_double(void* ptr, ErrorCode* error) {
+	return alloc_double(*CAST(ptr, double*));
+}
+
 bool compare(void* left, void* right) {
 	double* l = CAST(left, double*);
 	double* r = CAST(right, double*);
@@ -40,6 +44,9 @@ int main(int argc, char* argv[]) {
 		array_push(array, alloc_double(dist_uniform_double(rng, -100, 100, NULL)), NULL);
 	}
 	rng_delete(&rng, NULL);
+	Array* new_array = array_copy(array, NULL, copy_double, default_delete_function);
+	array_delete(&array, &error, default_delete_function);
+	array = new_array;
 	array_sort(array, compare, NULL);
 	size_t size = array_size(array, NULL);
 	printf("\nMax capacity: %ld\n", array_capacity(array, NULL));

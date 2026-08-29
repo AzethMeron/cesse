@@ -22,6 +22,6 @@ bool map_contains(Map* map, const char* key, ErrorCode* error);
 size_t map_size(Map* map, ErrorCode* error);
 Array* map_keylist(Map* map, ErrorCode* error);
 void* map_remove(Map* map, const char* key, ErrorCode* error);
-Map* map_copy(Map* map, ErrorCode* error, function_copy copier);
+Map* map_copy(Map* map, ErrorCode* error, function_copy copier, function_delete freer);
 
 #endif

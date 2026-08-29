@@ -11,5 +11,6 @@ ErrorCode default_delete_function(void**ptr) {
 }
 
 void* default_shallow_copy(void* ptr, ErrorCode* error){
+	(void)error;
 	return ptr;
 }

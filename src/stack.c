@@ -101,6 +101,7 @@ size_t stack_max_capacity() {
 Stack* stack_copy(Stack* stack, ErrorCode* error, function_copy copier, function_delete freer) {
 	ERROR_ON_COND(stack==NULL, error, CESSE_ERR_NULLARG, return NULL;);
 	ERROR_ON_COND(copier==NULL, error, CESSE_ERR_NULLARG, return NULL;);
+	ERROR_ON_COND(freer==NULL, error, CESSE_ERR_NULLARG, return NULL;);
 	ErrorCode local_err = CESSE_OK;
 	Stack* copy = stack_new(&local_err);
 	ERROR_ON_COND(copy==NULL, error, local_err, return NULL;);
@@ -115,7 +116,7 @@ Stack* stack_copy(Stack* stack, ErrorCode* error, function_copy copier, function
 		index = index - 1; // as earlier
 	}
 	for(size_t i = 0; i < stack->size; ++i) {
-		void* ptr = function_copy(data[i], &local_err);
+		void* ptr = copier(data[i], &local_err);
 		if(!local_err) { stack_push(copy, ptr, &local_err); }
 		if(local_err) {
 			SET_ERROR(error, local_err);
