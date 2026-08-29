@@ -23,5 +23,6 @@ typedef enum cesse_error : ErrorCode {
 } cesse_error_t;
 
 const char* error_code_to_cstring(const ErrorCode* error_code);
+size_t fit_power_of_two(size_t capacity);
 
 #endif

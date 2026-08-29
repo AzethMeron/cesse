@@ -3,6 +3,7 @@
 #include "cesse/macros.h"
 
 #include <stddef.h>
+#include <math.h>
 
 const char* error_code_to_cstring(const ErrorCode* error) {
 	if(error == NULL) {
@@ -40,4 +41,19 @@ const char* error_code_to_cstring(const ErrorCode* error) {
 			return "Key not in the hashcontainer.";
 		} break;
 	}
+}
+
+size_t fit_power_of_two(size_t capacity) {
+    if (capacity <= 1) {
+        return 1;
+    }
+    capacity--;
+    for (size_t shift = 1; shift < sizeof(size_t) * CHAR_BIT; shift <<= 1) {
+        capacity |= capacity >> shift;
+    }
+    capacity++;
+    if (capacity == 0) {
+        return 0; // overflow
+    }
+    return capacity;
 }

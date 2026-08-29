@@ -1,9 +1,16 @@
 #ifndef CESSE_BOOL_H
 #define CESSE_BOOL_H
 
-// here boolean is implemented
-// You're expected to just pull stdbool.h
-// but if one's absent in your compilator, you can just uncomment replacement
+/**
+* @file cesse/bool.h
+* @author Jakub Grzana
+* @date August 2026
+* @brief Boolean type abstraction
+* 
+* This headerfile includes bool type, as well as keyword true and false
+* For C23 all that's needed is #include <stdbool.h>, but it's kept for the sake of compability:
+* if sooner or later there's need to port library for earlier C versions, here those symbols shall be implemented.
+*/
 
 #include <stdbool.h>
 

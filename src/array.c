@@ -24,15 +24,8 @@ typedef struct Array {
 static bool internal_expand_if_necessary(Array* array, size_t target_size, ErrorCode* error) {
     if(target_size > array->capacity) {
 		// manage size
-		ERROR_ON_COND(target_size > MAX_CAPACITY, error, CESSE_ERR_OVERFLOW, return true;);
-		size_t new_capacity = target_size;
-		if(array->capacity <= MAX_CAPACITY / 2) { // doubling is okay
-			new_capacity = array->capacity * 2; 
-			if(new_capacity < target_size) { new_capacity = target_size; }
-		}
-		else { // doubling would overflow
-			new_capacity = MAX_CAPACITY; // logical next step, absolute limit.
-		}
+		size_t new_capacity = fit_power_of_two(target_size);
+		ERROR_ON_COND(new_capacity > MAX_CAPACITY, error, CESSE_ERR_OVERFLOW, return true;);
 		// here goes meat
 		void* ptr = malloc(new_capacity * sizeof(void*));
 		ERROR_ON_COND(ptr==NULL, error, CESSE_ERR_ALLOC, return true;);
@@ -65,11 +58,10 @@ static bool internal_shrink_if_appropriate(Array* array, size_t target_size, Err
 
 Array* array_new(size_t capacity, ErrorCode* error) {
 	ERROR_ON_COND(capacity>MAX_CAPACITY, error, CESSE_ERR_OVERFLOW, return NULL);
-	Array* vessel = NULL;
 	void* ptr = malloc(sizeof(Array));
 	ERROR_ON_COND(ptr==NULL, error, CESSE_ERR_ALLOC, return NULL;);
 	memset(ptr, 0, sizeof(Array));
-	vessel = CAST(ptr, Array*);
+	Array* vessel = CAST(ptr, Array*);
 	size_t true_capacity = capacity;
 	if(true_capacity < MIN_CAPACITY) { true_capacity = MIN_CAPACITY; }
 	ptr = malloc(true_capacity * sizeof(void*));
