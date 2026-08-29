@@ -55,6 +55,7 @@ static void merge_sort(void** anchor, size_t lo, size_t hi, function_compare_lt 
 }
 
 void sort(void** begin, const size_t length, function_compare_lt compare_lt, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
         ERROR_ON_COND(begin==NULL, error, CESSE_ERR_NULLARG, return;);
         ERROR_ON_COND(compare_lt==NULL, error, CESSE_ERR_NULLARG, return;);
         if (length < 2) { return; }

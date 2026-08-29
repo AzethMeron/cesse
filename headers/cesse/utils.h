@@ -1,15 +1,45 @@
 #ifndef CESSE_UTILS_H
 #define CESSE_UTILS_H
 
-#include <stdint.h>
+/**
+* @file utils.h
+* @author Jakub Grzana
+* @date August 2026
+* @brief Shared error-code type and small utility functions used throughout cesse
+*/
 
-// Type and values for error codes
-// You should ALWAYS create vessel for error code like this:
-//   ErrorCode error = CESSE_OK;
-// then pass address of that local variable to functions as necessary
-// Every ErrorCode* argument can also be ignored by using NULL
-// Error codes are set only on error (during normal execution, functions never set it to anything - thus initialization is important)
+#include <stdint.h>
+#include <stddef.h>
+
+/**
+* Error code type used as the ErrorCode* out-parameter across the whole library.
+*
+* You should ALWAYS create a vessel for the error code like this:
+*   ErrorCode error = CESSE_OK;
+* then pass its address to functions as necessary. Every ErrorCode* argument
+* across cesse can also be ignored by passing NULL.
+*
+* Error codes are set only on error: during normal, successful execution a
+* function never touches its error parameter, so initializing your own
+* variable to CESSE_OK before the call matters -- otherwise a successful
+* call can look like it failed just because of whatever value the
+* variable already held.
+*/
 typedef uint16_t ErrorCode;
+
+/**
+* The concrete values ErrorCode can hold.
+*
+* - CESSE_OK: no error; the operation succeeded.
+* - CESSE_ERR_ALLOC: a heap allocation (malloc) failed.
+* - CESSE_ERR_NULLARG: a required pointer argument was NULL.
+* - CESSE_ERR_OUT_OF_BOUNDS: an index argument was outside the valid range.
+* - CESSE_ERR_EMPTY: the operation needs at least one element, but the container was empty.
+* - CESSE_ERR_BAD_ARG: an argument was structurally invalid (e.g. min > max, or a probability outside [0,1]).
+* - CESSE_ERR_OVERFLOW: an internal size/capacity calculation would exceed what's representable.
+* - CESSE_ERR_UNDERFLOW: reserved for a size_t computation wrapping below zero; not currently produced anywhere in cesse.
+* - CESSE_ERR_KEY_NOT_FOUND: the requested key does not exist in a Map.
+*/
 typedef enum cesse_error : ErrorCode {
 	CESSE_OK = 0,
 	CESSE_ERR_ALLOC,
@@ -22,7 +52,33 @@ typedef enum cesse_error : ErrorCode {
 	CESSE_ERR_KEY_NOT_FOUND,
 } cesse_error_t;
 
+/**
+* Convert an error code into a human-readable, statically-allocated description string.
+*
+* Time complexity: O(1).
+* \param error_code Pointer to the code to describe. Unlike every other
+*        ErrorCode* in cesse, this one is an input to decode, not an
+*        out-parameter to report a failure into -- so passing an
+*        already-non-CESSE_OK value here is the normal, expected use,
+*        not a caller mistake. Passing NULL itself is explicitly handled
+*        (returns a diagnostic string) rather than being undefined behavior.
+* \return A never-NULL, statically-allocated string that must not be
+*         free()'d. An unrecognized code also returns a descriptive
+*         string rather than crashing.
+*/
 const char* error_code_to_cstring(const ErrorCode* error_code);
+
+/**
+* Round a capacity up to the nearest power of two.
+*
+* Time complexity: O(1) -- a fixed, small number of bit-shifts bounded by
+* the width of size_t, independent of the input value.
+* \param capacity The requested capacity. 0 and 1 both map to 1.
+* \return The smallest power of two >= capacity, or 0 if that value would
+*         exceed what a size_t can represent (capacity > 2^63 on a
+*         64-bit size_t). Callers must treat a 0 result as an overflow
+*         signal, not a valid capacity of zero.
+*/
 size_t fit_power_of_two(size_t capacity);
 
 #endif

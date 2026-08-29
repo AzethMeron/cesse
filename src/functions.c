@@ -1,6 +1,7 @@
 
 #include "cesse/functions.h"
 #include "cesse/utils.h"
+#include "cesse/macros.h"
 #include <stdlib.h>
 
 ErrorCode default_delete_function(void**ptr) {
@@ -11,6 +12,6 @@ ErrorCode default_delete_function(void**ptr) {
 }
 
 void* default_shallow_copy(void* ptr, ErrorCode* error){
-	(void)error;
+	ASSURE_ERROR_OK(error);
 	return ptr;
 }

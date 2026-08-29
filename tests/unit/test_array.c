@@ -211,6 +211,72 @@ static void test_delete_reports_freer_failure(void) {
         free(heap_val); /* failing_freer deliberately didn't free it */
 }
 
+static void* int_deep_copy(void* obj, ErrorCode* error) {
+        (void)error;
+        int* copy = malloc(sizeof(int));
+        *copy = *(int*)obj;
+        return copy;
+}
+
+static void test_copy_deep_and_independent(void) {
+        ErrorCode err = CESSE_OK;
+        Array* a = array_new(4, &err);
+        int vals[5] = {10, 20, 30, 40, 50};
+        for (int i = 0; i < 5; i++) { array_push(a, &vals[i], &err); }
+
+        Array* copy = array_copy(a, &err, int_deep_copy, default_delete_function);
+        ASSERT_EQ(err, CESSE_OK);
+        ASSERT_EQ(array_size(copy, NULL), (size_t)5);
+
+        bool values_match = true, pointers_independent = true;
+        for (int i = 0; i < 5; i++) {
+                int* orig = array_get(a, (size_t)i, NULL);
+                int* cop = array_get(copy, (size_t)i, NULL);
+                if (*orig != *cop) values_match = false;
+                if (orig == cop) pointers_independent = false;
+        }
+        ASSERT_TRUE(values_match);
+        ASSERT_TRUE(pointers_independent);
+
+        array_delete(&a, &err, NULL);
+        array_delete(&copy, &err, default_delete_function);
+}
+
+static void test_copy_empty(void) {
+        ErrorCode err = CESSE_OK;
+        Array* a = array_new(4, &err);
+        Array* copy = array_copy(a, &err, int_deep_copy, default_delete_function);
+        ASSERT_EQ(err, CESSE_OK);
+        ASSERT_NOT_NULL(copy);
+        ASSERT_EQ(array_size(copy, NULL), (size_t)0);
+        array_delete(&a, &err, NULL);
+        array_delete(&copy, &err, default_delete_function);
+}
+
+static int array_copy_call_count = 0;
+static void* array_copy_failing_on_third(void* obj, ErrorCode* error) {
+        (void)obj;
+        array_copy_call_count++;
+        if (array_copy_call_count == 3) { *error = CESSE_ERR_ALLOC; return NULL; }
+        int* copy = malloc(sizeof(int));
+        *copy = *(int*)obj;
+        return copy;
+}
+
+static void test_copy_propagates_mid_copy_failure(void) {
+        ErrorCode err = CESSE_OK;
+        Array* a = array_new(5, &err);
+        int vals[5] = {1, 2, 3, 4, 5};
+        for (int i = 0; i < 5; i++) { array_push(a, &vals[i], &err); }
+
+        array_copy_call_count = 0;
+        Array* copy = array_copy(a, &err, array_copy_failing_on_third, default_delete_function);
+        ASSERT_NULL(copy);
+        ASSERT_NE(err, CESSE_OK); /* the real failure must be reported, not silently CESSE_OK */
+
+        array_delete(&a, &err, NULL);
+}
+
 int main(void) {
         TEST_INIT();
         RUN(test_new_delete);
@@ -228,5 +294,8 @@ int main(void) {
         RUN(test_max_capacity_is_positive);
         RUN(test_sort_wrapper);
         RUN(test_delete_reports_freer_failure);
+        RUN(test_copy_deep_and_independent);
+        RUN(test_copy_empty);
+        RUN(test_copy_propagates_mid_copy_failure);
         return TEST_REPORT();
 }

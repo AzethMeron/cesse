@@ -34,10 +34,27 @@ static void test_usable_as_function_delete_callback(void) {
         ASSERT_NULL(vp);
 }
 
+static void test_shallow_copy_returns_same_pointer(void) {
+        int v = 7;
+        ErrorCode err = CESSE_OK;
+        void* result = default_shallow_copy(&v, &err);
+        ASSERT_TRUE(result == &v); /* aliases, doesn't duplicate -- that's the point */
+        ASSERT_EQ(err, CESSE_OK);
+}
+
+static void test_shallow_copy_usable_as_function_copy_callback(void) {
+        function_copy fn = default_shallow_copy;
+        int v = 7;
+        ErrorCode err = CESSE_OK;
+        ASSERT_TRUE(fn(&v, &err) == &v);
+}
+
 int main(void) {
         TEST_INIT();
         RUN(test_frees_and_nulls_out);
         RUN(test_rejects_null_ptr_argument);
         RUN(test_usable_as_function_delete_callback);
+        RUN(test_shallow_copy_returns_same_pointer);
+        RUN(test_shallow_copy_usable_as_function_copy_callback);
         return TEST_REPORT();
 }

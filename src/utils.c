@@ -4,6 +4,7 @@
 
 #include <stddef.h>
 #include <math.h>
+#include <limits.h>
 
 const char* error_code_to_cstring(const ErrorCode* error) {
 	if(error == NULL) {

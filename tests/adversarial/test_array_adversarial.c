@@ -2,11 +2,17 @@
 #include "cesse/array.h"
 #include "cesse/utils.h"
 
-static void test_new_zero_capacity(void) {
+static void test_new_zero_capacity_is_clamped_to_minimum(void) {
+        /* capacity==0 is no longer rejected -- it's clamped up to a
+         * minimum internal capacity instead (needed so array_copy of
+         * an empty array can succeed rather than always failing). */
         ErrorCode err = CESSE_OK;
         Array* a = array_new(0, &err);
-        ASSERT_NULL(a);
-        ASSERT_EQ(err, CESSE_ERR_BAD_ARG);
+        ASSERT_NOT_NULL(a);
+        ASSERT_EQ(err, CESSE_OK);
+        ASSERT_EQ(array_size(a, NULL), (size_t)0);
+        ASSERT_TRUE(array_capacity(a, NULL) > 0);
+        array_delete(&a, &err, NULL);
 }
 
 static void test_new_capacity_overflow(void) {
@@ -189,7 +195,7 @@ static void test_pop_shrink_then_regrow_preserves_data(void) {
 
 int main(void) {
         TEST_INIT();
-        RUN(test_new_zero_capacity);
+        RUN(test_new_zero_capacity_is_clamped_to_minimum);
         RUN(test_new_capacity_overflow);
         RUN(test_get_null_array);
         RUN(test_get_out_of_bounds);

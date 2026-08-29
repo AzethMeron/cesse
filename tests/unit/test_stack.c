@@ -129,6 +129,71 @@ static void test_max_capacity_is_positive(void) {
         ASSERT_TRUE(stack_max_capacity() > 0);
 }
 
+static void* int_deep_copy(void* obj, ErrorCode* error) {
+        (void)error;
+        int* copy = malloc(sizeof(int));
+        *copy = *(int*)obj;
+        return copy;
+}
+
+static void test_copy_preserves_order(void) {
+        ErrorCode err = CESSE_OK;
+        Stack* s = stack_new(&err);
+        int vals[5] = {1, 2, 3, 4, 5};
+        for (int i = 0; i < 5; i++) { stack_push(s, &vals[i], &err); }
+
+        Stack* copy = stack_copy(s, &err, int_deep_copy, default_delete_function);
+        ASSERT_EQ(err, CESSE_OK);
+        ASSERT_EQ(stack_size(copy, NULL), (size_t)5);
+
+        bool order_ok = true;
+        for (int expected = 5; expected >= 1; expected--) {
+                int* popped = stack_pop(copy, &err);
+                if (!popped || *popped != expected) order_ok = false;
+                free(popped);
+        }
+        ASSERT_TRUE(order_ok);
+        ASSERT_EQ(stack_size(s, NULL), (size_t)5); /* original untouched */
+
+        stack_delete(&s, &err, NULL);
+        stack_delete(&copy, &err, default_delete_function);
+}
+
+static void test_copy_empty(void) {
+        ErrorCode err = CESSE_OK;
+        Stack* s = stack_new(&err);
+        Stack* copy = stack_copy(s, &err, int_deep_copy, default_delete_function);
+        ASSERT_EQ(err, CESSE_OK);
+        ASSERT_NOT_NULL(copy);
+        ASSERT_EQ(stack_size(copy, NULL), (size_t)0);
+        stack_delete(&s, &err, NULL);
+        stack_delete(&copy, &err, default_delete_function);
+}
+
+static int stack_copy_call_count = 0;
+static void* stack_copy_failing_on_third(void* obj, ErrorCode* error) {
+        (void)obj;
+        stack_copy_call_count++;
+        if (stack_copy_call_count == 3) { *error = CESSE_ERR_ALLOC; return NULL; }
+        int* copy = malloc(sizeof(int));
+        *copy = *(int*)obj;
+        return copy;
+}
+
+static void test_copy_propagates_mid_copy_failure(void) {
+        ErrorCode err = CESSE_OK;
+        Stack* s = stack_new(&err);
+        int vals[5] = {1, 2, 3, 4, 5};
+        for (int i = 0; i < 5; i++) { stack_push(s, &vals[i], &err); }
+
+        stack_copy_call_count = 0;
+        Stack* copy = stack_copy(s, &err, stack_copy_failing_on_third, default_delete_function);
+        ASSERT_NULL(copy);
+        ASSERT_NE(err, CESSE_OK);
+
+        stack_delete(&s, &err, NULL);
+}
+
 int main(void) {
         TEST_INIT();
         RUN(test_new_delete);
@@ -140,5 +205,8 @@ int main(void) {
         RUN(test_delete_with_default_delete_function);
         RUN(test_delete_reports_freer_failure);
         RUN(test_max_capacity_is_positive);
+        RUN(test_copy_preserves_order);
+        RUN(test_copy_empty);
+        RUN(test_copy_propagates_mid_copy_failure);
         return TEST_REPORT();
 }

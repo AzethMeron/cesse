@@ -80,6 +80,7 @@ static uint64_t bounded_u64(Rng* rng, uint64_t range) {
 }
 
 Rng* rng_new(const uint64_t seed, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	void* ptr = malloc(sizeof(Rng));
 	ERROR_ON_COND(ptr==NULL, error, CESSE_ERR_ALLOC, return NULL);
 	Rng* rng = CAST(ptr, Rng*);
@@ -88,10 +89,12 @@ Rng* rng_new(const uint64_t seed, ErrorCode* error) {
 }
 
 Rng* rng_new_time(ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	return rng_new(CAST(time(NULL), uint64_t), error);
 }
 
 void rng_delete(Rng** rng, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return;);
 	ERROR_ON_COND((*rng)==NULL, error, CESSE_ERR_NULLARG, return;);
 	free(*rng);
@@ -100,20 +103,24 @@ void rng_delete(Rng** rng, ErrorCode* error) {
 
 // Raw outputs
 uint32_t rng_next_u32(Rng* rng, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	return (uint32_t)(next(rng) >> 32);
 }
 uint64_t rng_next_u64(Rng* rng, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	return next(rng);
 }
 double   rng_next_double(Rng* rng, ErrorCode* error) { 
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	return CAST((next(rng) >> 11), double) * 0x1.0p-53;
 
 }
 // distribution
 int64_t  dist_uniform_i64(Rng* rng, const int64_t min, const int64_t max, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0;);
 	ERROR_ON_COND(min > max, error, CESSE_ERR_BAD_ARG, return 0;);
 	/* Number of representable values in [min, max]. Computed in
@@ -125,16 +132,19 @@ int64_t  dist_uniform_i64(Rng* rng, const int64_t min, const int64_t max, ErrorC
 	return CAST(CAST(min, uint64_t) + offset, int64_t);
 }
 double   dist_uniform_double(Rng* rng, const double min, const double max, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(rng == NULL, error, CESSE_ERR_NULLARG, return 0.0;);
     ERROR_ON_COND(!(min < max), error, CESSE_ERR_BAD_ARG, return 0.0;);
 	return min + (max - min) * rng_next_double(rng, error);
 }	
 bool     dist_bernoulli(Rng* rng, const double p, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(rng == NULL, error, CESSE_ERR_NULLARG, return false;);
     ERROR_ON_COND(!(p >= 0.0 && p <= 1.0), error, CESSE_ERR_BAD_ARG, return false);
     return rng_next_double(rng, error) < p;
 }
 double   dist_normal(Rng* rng, const double mean, const double stddev, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0.0;);
 	ERROR_ON_COND(!(stddev >= 0.0), error, CESSE_ERR_BAD_ARG, return 0.0;);
 	/* Box-Muller. u1==0.0 would make log(u1) = -infinity; rng_next_double's
@@ -149,6 +159,7 @@ double   dist_normal(Rng* rng, const double mean, const double stddev, ErrorCode
 	return mean + z0 * stddev;
 }
 double   dist_exponential(Rng* rng, const double lambda, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return 0.0;);
 	ERROR_ON_COND(!(lambda > 0.0), error, CESSE_ERR_BAD_ARG, return 0.0;);
 	/* Inverse-CDF sampling: same u==0.0 concern as dist_normal. */
@@ -159,6 +170,7 @@ double   dist_exponential(Rng* rng, const double lambda, ErrorCode* error) {
 	return -log(u) / lambda;
 }
 void shuffle(void** anchor, const size_t length, Rng* rng, ErrorCode* error) {
+	ASSURE_ERROR_OK(error);
 	ERROR_ON_COND(anchor==NULL, error, CESSE_ERR_NULLARG, return;);
 	ERROR_ON_COND(rng==NULL, error, CESSE_ERR_NULLARG, return;);
 	if (length < 2) { return; }

@@ -1,27 +1,186 @@
 #ifndef CESSE_RNG_H
 #define CESSE_RNG_H
 
+/**
+* @file rng.h
+* @author Jakub Grzana
+* @date August 2026
+* @brief xoshiro256** pseudorandom generator, plus common distributions built on it
+*/
+
 #include "cesse/utils.h"
 #include "cesse/bool.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
+/**
+* Rng type: an xoshiro256** generator instance. Not cryptographically
+* secure -- suitable for simulations, testing, games, and similar
+* general-purpose use, not for anything security-sensitive.
+*/
 typedef struct Rng Rng; // xoshiro256**
 
+/**
+* Create a new Rng seeded deterministically from seed (via splitmix64 to
+* fill the generator's internal state). The same seed always reproduces
+* the same sequence of outputs.
+*
+* Time complexity: O(1).
+* \param seed The seed value. Any uint64_t value is accepted, including 0.
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_ALLOC.
+* \return Pointer to the created Rng, or NULL if an error occurred.
+*/
 Rng* rng_new(const uint64_t seed, ErrorCode* error);
+
+/**
+* Create a new Rng seeded from the current time (time(NULL)), for a
+* non-reproducible sequence. Equivalent to rng_new((uint64_t)time(NULL), error).
+*
+* Time complexity: O(1).
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_ALLOC.
+* \return Pointer to the created Rng, or NULL if an error occurred.
+*/
 Rng* rng_new_time(ErrorCode* error); // use time(NULL) as seed
+
+/**
+* Delete an Rng and free it.
+*
+* Time complexity: O(1).
+* \param rng Pointer-to-pointer of the Rng. Once freed, the pointer is
+*        set to NULL (hence the double pointer).
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG (rng itself, i.e. the
+*        pointer-to-pointer, is NULL, or it already points to NULL --
+*        unlike Array/Stack/Map, deleting an already-NULL Rng is
+*        reported as an error here rather than treated as a silent no-op).
+*/
 void rng_delete(Rng** rng, ErrorCode* error);
+
 // Raw generator outputs
+
+/**
+* Draw a raw, uniformly random 32-bit value (the top 32 bits of one
+* generator step).
+*
+* Time complexity: O(1).
+* \param rng The generator to draw from. Must not be NULL.
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG.
+* \return A value uniformly distributed over the full uint32_t range, or 0 if an error occurred.
+*/
 uint32_t rng_next_u32(Rng* rng, ErrorCode* error);
+
+/**
+* Draw a raw, uniformly random 64-bit value (one full generator step).
+*
+* Time complexity: O(1).
+* \param rng The generator to draw from. Must not be NULL.
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG.
+* \return A value uniformly distributed over the full uint64_t range, or 0 if an error occurred.
+*/
 uint64_t rng_next_u64(Rng* rng, ErrorCode* error);
+
+/**
+* Draw a uniformly random double in [0, 1).
+*
+* Time complexity: O(1).
+* \param rng The generator to draw from. Must not be NULL.
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG.
+* \return A value in [0, 1), or 0.0 if an error occurred (0.0 is also a
+*         legitimate, non-error result within that range).
+*/
 double   rng_next_double(Rng* rng, ErrorCode* error); /* uniform [0, 1) */
+
 // Distribution
+
+/**
+* Draw a uniformly random int64_t in [min, max] (both ends inclusive),
+* with no modulo bias, via rejection sampling.
+*
+* Time complexity: O(1) expected. Rejection sampling can in principle
+* loop more than once, but the rejection probability is always well
+* under 50% for any range, so more than a couple of iterations is
+* extremely unlikely in practice.
+* \param rng The generator to draw from. Must not be NULL.
+* \param min Lower bound, inclusive.
+* \param max Upper bound, inclusive. Must be >= min.
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (min > max).
+* \return A value in [min, max], or 0 if an error occurred (0 may also
+*         be a legitimate, non-error result if it falls within [min, max]).
+*/
 int64_t  dist_uniform_i64(Rng* rng, const int64_t min, const int64_t max, ErrorCode* error); /* inclusive both ends */
+
+/**
+* Draw a uniformly random double in [min, max).
+*
+* Time complexity: O(1).
+* \param rng The generator to draw from. Must not be NULL.
+* \param min Lower bound, inclusive.
+* \param max Upper bound, exclusive. Must be > min.
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (min >= max).
+* \return A value in [min, max), or 0.0 if an error occurred.
+*/
 double   dist_uniform_double(Rng* rng, const double min, const double max, ErrorCode* error);  /* [min, max) */
+
+/**
+* Draw true with probability p, false otherwise.
+*
+* Time complexity: O(1).
+* \param rng The generator to draw from. Must not be NULL.
+* \param p Probability of returning true. Must be within [0.0, 1.0].
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (p outside [0.0, 1.0]).
+* \return true or false, or false if an error occurred (false is also a
+*         legitimate, non-error outcome).
+*/
 bool     dist_bernoulli(Rng* rng, const double p, ErrorCode* error);                     /* true w/ probability p */
+
+/**
+* Draw a sample from a normal (Gaussian) distribution via Box-Muller.
+*
+* Time complexity: O(1) expected (an internal redraw only happens on the
+* astronomically unlikely case of drawing exactly 0.0, needed to avoid
+* an undefined log(0)).
+* \param rng The generator to draw from. Must not be NULL.
+* \param mean The distribution's mean.
+* \param stddev The distribution's standard deviation. Must be >= 0.0.
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (stddev < 0.0).
+* \return The sampled value, or 0.0 if an error occurred.
+*/
 double   dist_normal(Rng* rng, const double mean, const double stddev, ErrorCode* error);
+
+/**
+* Draw a sample from an exponential distribution via inverse-CDF sampling.
+*
+* Time complexity: O(1) expected (same astronomically-unlikely-redraw
+* caveat as dist_normal, for the same reason).
+* \param rng The generator to draw from. Must not be NULL.
+* \param lambda The distribution's rate parameter. Must be > 0.0.
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG, CESSE_ERR_BAD_ARG (lambda <= 0.0).
+* \return The sampled value, or 0.0 if an error occurred.
+*/
 double   dist_exponential(Rng* rng, const double lambda, ErrorCode* error);
+
+/**
+* Shuffle anchor[0..length) in place via Fisher-Yates, so every
+* permutation is equally likely.
+*
+* Time complexity: O(n), where n is length.
+* \param anchor The array of pointers to shuffle. Must not be NULL.
+* \param length Number of elements at anchor. 0 or 1 is a no-op.
+* \param rng The generator supplying randomness. Must not be NULL.
+* \param error Pointer to ErrorCode object, to be populated with error if one occurs. Pass NULL to ignore.
+*        Possible codes: CESSE_ERR_NULLARG (anchor or rng is NULL).
+*/
 void shuffle(void** anchor, const size_t length, Rng* rng, ErrorCode* error);
 
 #endif
