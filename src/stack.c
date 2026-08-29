@@ -97,3 +97,37 @@ size_t stack_size(Stack* stack, ErrorCode* error) {
 size_t stack_max_capacity() {
 	return MAX_CAPACITY;
 }
+
+Stack* stack_copy(Stack* stack, ErrorCode* error, function_copy copier, function_delete freer) {
+	ERROR_ON_COND(stack==NULL, error, CESSE_ERR_NULLARG, return NULL;);
+	ERROR_ON_COND(copier==NULL, error, CESSE_ERR_NULLARG, return NULL;);
+	ErrorCode local_err = CESSE_OK;
+	Stack* copy = stack_new(&local_err);
+	ERROR_ON_COND(copy==NULL, error, local_err, return NULL;);
+	if(stack->size == 0) { return copy; } // job done
+	void** data = malloc(stack->size * sizeof(void*));
+	ERROR_ON_COND(data==NULL, error, CESSE_ERR_ALLOC, return NULL;);
+	stack_elem* iter = stack->front;
+	size_t index = stack->size - 1; // will underflow, but only if iter == NULL
+	while(iter) {
+		data[index] = iter->object;
+		iter = iter->next;
+		index = index - 1; // as earlier
+	}
+	for(size_t i = 0; i < stack->size; ++i) {
+		void* ptr = function_copy(data[i], &local_err);
+		if(!local_err) { stack_push(copy, ptr, &local_err); }
+		if(local_err) {
+			SET_ERROR(error, local_err);
+			ErrorCode fall_err = CESSE_OK;
+			stack_delete(&copy, &fall_err, freer);
+			free(data);
+			if(fall_err) {
+				fprintf(stderr, "stack_copy: error occured during fallback action. Cleanup-after-failed-copy errored out.");
+			}
+			return NULL;
+		}
+	}
+	free(data);
+	return copy;
+}

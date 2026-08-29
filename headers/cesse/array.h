@@ -23,5 +23,6 @@ void* array_remove(Array* array, const size_t idx, ErrorCode* error);
 void array_sort(Array* array, function_compare_lt compare_lt, ErrorCode* error);
 void array_fit_memory(Array* array, ErrorCode* error);
 size_t array_max_capacity();
+Array* array_copy(Array* array, ErrorCode* error, function_copy copier, function_delete freer);
 
 #endif

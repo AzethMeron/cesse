@@ -64,7 +64,6 @@ static bool internal_shrink_if_appropriate(Array* array, size_t target_size, Err
 }
 
 Array* array_new(size_t capacity, ErrorCode* error) {
-	ERROR_ON_COND(capacity==0, error, CESSE_ERR_BAD_ARG, return NULL;); // This guarantees we're making array of cap ATLEAST 1
 	ERROR_ON_COND(capacity>MAX_CAPACITY, error, CESSE_ERR_OVERFLOW, return NULL);
 	Array* vessel = NULL;
 	void* ptr = malloc(sizeof(Array));
@@ -207,4 +206,27 @@ void array_fit_memory(Array* array, ErrorCode* error) {
 
 size_t array_max_capacity() {
 	return MAX_CAPACITY;
+}
+
+Array* array_copy(Array* array, ErrorCode* error, function_copy copier, function_delete freer) {
+	ERROR_ON_COND(array==NULL, error, CESSE_ERR_NULLARG, return NULL;);
+	ERROR_ON_COND(copier==NULL, error, CESSE_ERR_NULLARG, return NULL;);
+	ErrorCode local_err = CESSE_OK;
+	Array* copy = array_new(array->size, &local_err);
+	if(array->size == 0) { return copy; } // job done
+	ERROR_ON_COND(copy==NULL, error, local_err, return NULL;);
+	for(size_t i = 0; i < array->size; ++i) {
+		void* copied_object = copier(array->data[i], &local_err);
+		if(!local_err) { array_push(copy, copied_object, &local_err); }
+		if(local_err) {
+			SET_ERROR(error, local_err);
+			ErrorCode fall_err = CESSE_OK;
+			array_delete(&copy, &fall_err, freer);
+			if(fall_err) {
+				fprintf(stderr, "array_copy: error occured during fallback action. Cleanup-after-failed-copy errored out.");
+			}
+			return NULL;
+		}
+	}
+	return copy;
 }

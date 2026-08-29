@@ -17,5 +17,6 @@ void* stack_pop(Stack* stack, ErrorCode* error);
 void* stack_top(Stack* stack, ErrorCode* error);
 size_t stack_size(Stack* stack, ErrorCode* error);
 size_t stack_max_capacity();
+Stack* stack_copy(Stack* stack, ErrorCode* error, function_copy copier, function_delete freer);
 
 #endif

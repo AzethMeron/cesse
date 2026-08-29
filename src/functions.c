@@ -9,3 +9,7 @@ ErrorCode default_delete_function(void**ptr) {
 	*ptr = NULL;
 	return CESSE_OK;
 }
+
+void* default_shallow_copy(void* ptr, ErrorCode* error){
+	return ptr;
+}
