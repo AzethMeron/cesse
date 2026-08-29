@@ -27,8 +27,7 @@
 /**
 * Write val into *ptr, unless ptr is NULL (in which case do nothing).
 * This is how every ErrorCode* out-parameter in cesse can safely be
-* ignored by passing NULL -- SET_ERROR is always used to write to it,
-* never a direct assignment.
+* ignored by passing NULL.
 *
 * Time complexity: O(1).
 */

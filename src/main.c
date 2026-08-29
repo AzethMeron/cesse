@@ -13,6 +13,7 @@
 
 void* alloc_double(const double value);
 bool compare(void* left, void* right);
+void* copy_double(void* ptr, ErrorCode* error);
 
 void* alloc_double(const double value) {
 	void* ptr = malloc(sizeof(value));
@@ -21,6 +22,7 @@ void* alloc_double(const double value) {
 }
 
 void* copy_double(void* ptr, ErrorCode* error) {
+	(void)error;
 	return alloc_double(*CAST(ptr, double*));
 }
 

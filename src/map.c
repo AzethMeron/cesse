@@ -75,6 +75,7 @@ static find_result find_entry(Map* map, const char* key, ErrorCode* error) {
 static void resize_map(Map* map, size_t new_bucket_count, ErrorCode* error) {
 	ERROR_ON_COND(map==NULL, error, CESSE_ERR_NULLARG, return;);
 	new_bucket_count = fit_power_of_two(new_bucket_count);
+	ERROR_ON_COND(new_bucket_count==0, error, CESSE_ERR_OVERFLOW, return;);
 	ERROR_ON_COND(new_bucket_count>MAX_BUCKET_ARRAY_LENGTH, error, CESSE_ERR_OVERFLOW, return;);
 	void* ptr = malloc(new_bucket_count * sizeof(map_elem*));
 	ERROR_ON_COND(ptr==NULL, error, CESSE_ERR_ALLOC, return;);

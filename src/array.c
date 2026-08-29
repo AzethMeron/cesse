@@ -25,6 +25,7 @@ static bool internal_expand_if_necessary(Array* array, size_t target_size, Error
     if(target_size > array->capacity) {
 		// manage size
 		size_t new_capacity = fit_power_of_two(target_size);
+		ERROR_ON_COND(new_capacity == 0, error, CESSE_ERR_OVERFLOW, return true);
 		ERROR_ON_COND(new_capacity > MAX_CAPACITY, error, CESSE_ERR_OVERFLOW, return true;);
 		// here goes meat
 		void* ptr = malloc(new_capacity * sizeof(void*));
