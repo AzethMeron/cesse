@@ -14,8 +14,8 @@ Array* array = array_new(100, &error);
 Map* map = map_new(&error);
 ```
 
-These create the objects and return memory allocated on stack, though you should NEVER try to free them on your own. 
-Use adequate  \*\_delete functions (third argument NULL for now, will explain bit later)
+These create the objects and return memory allocated on heap, though you should NEVER try to free them on your own. 
+Use adequate  \*\_delete functions *(third argument NULL for now, will explain bit later)*
 
 ```[c]
 stack_delete(&stack, &error, NULL);
@@ -31,3 +31,21 @@ Delete functions do their best to help you with cleaning objects and this is why
 
 Delete always removes the object. Abstaining from passing freer, or if freer errors-out will not stop it from removing container - leading to memory leak.
 
+# Building
+
+Header files are in ```headers/cesse``` directory. It's recommanded to add path to ```headers``` in compiler flags, so including the files remains as:
+```[c]
+#include "cesse/array.h"
+#include "cesse/stack.h"
+#include "cesse/map.h"
+#include "cesse/sort.h"
+#include "cesse/rng.h"
+```
+
+Source files are stored in ```src```.
+
+To build, you may use cmake with some of provided presets. ```Tools``` directory stores bash scripts with commands to build/test/etc.
+
+**This library has also documentation written for Doxygen.** You may build it by invoking ```tools/build_docs.sh```. 
+
+Target directory *(for compilation and building, as well as for docs)* is ```build``` directory.
